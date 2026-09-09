@@ -127,18 +127,22 @@ btnSaveLevel.addEventListener('click', () => {
 });
 
 // -- FUNGSI SHORTCUT KEYBOARD GLOBAL (ENTER) --
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
+window.addEventListener('keydown', function (e) {
+    // Gunakan 'Enter' atau kode kuncinya untuk kompatibilitas maksimal
+    if (e.key === 'Enter' || e.keyCode === 13) {
         e.preventDefault(); 
-        
-        // Logika prioritas
-        if (btnNext.style.display !== 'none') {
+        e.stopPropagation(); // Mencegah event merambat ke elemen lain
+
+        // Cek apakah tombol Next sedang aktif (ditampilkan)
+        if (window.getComputedStyle(btnNext).display !== 'none') {
             btnNext.click(); 
-        } else if (!wordInput.disabled) {
+        } 
+        // Jika tombol Next tidak aktif DAN input aktif (bisa diketik)
+        else if (!wordInput.disabled) {
             btnSubmit.click(); 
         }
     }
-});
+}, true); // Parameter true (capture phase) memaksa event ditangkap paling awal
 
 // -- MANAJEMEN SESI (SPACED REPETITION) --
 function prepareSession(dataArray, levelName) {
