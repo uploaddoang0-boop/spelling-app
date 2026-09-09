@@ -26,6 +26,31 @@ const btnAddWord = document.getElementById('btn-add-word');
 const builderWordList = document.getElementById('builder-word-list');
 const btnSaveLevel = document.getElementById('btn-save-level');
 
+// -- LOGIKA MODAL SETTINGS UI --
+const settingsModal = document.getElementById('settings-modal');
+const btnSettingsToggle = document.getElementById('btn-settings-toggle');
+const btnCloseSettings = document.getElementById('btn-close-settings');
+
+function openSettings() {
+    settingsModal.classList.remove('hidden');
+}
+
+function closeSettings() {
+    settingsModal.classList.add('hidden');
+    // UX: Autofocus kembali ke kotak ketik jika level sedang berjalan
+    if(!wordInput.disabled) wordInput.focus();
+}
+
+btnSettingsToggle.addEventListener('click', openSettings);
+btnCloseSettings.addEventListener('click', closeSettings);
+
+// Menutup modal jika area di luar kotak hitam diklik
+window.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+        closeSettings();
+    }
+});
+
 // -- FUNGSI DROPDOWN --
 function populateLevelDropdown() {
     levelSelector.innerHTML = '<option value="">-- Pilih Level Game --</option>'; 
@@ -75,6 +100,8 @@ btnLoadLevel.addEventListener('click', () => {
     }
 
     prepareSession(levelData, levelName);
+    // Otomatis menutup menu setelah level berhasil dimuat
+    closeSettings();
 });
 
 // -- LOGIKA LEVEL BUILDER --
@@ -122,27 +149,27 @@ btnSaveLevel.addEventListener('click', () => {
     alert(`Level "${lvlName}" berhasil disimpan ke sistem!`);
 });
 
-// -- FUNGSI SHORTCUT KEYBOARD GLOBAL TINGKAT LANJUT --
+// -- FUNGSI SHORTCUT KEYBOARD GLOBAL --
 window.addEventListener('keydown', function (e) {
-    // Isolasi Analitis: Jangan ganggu pengguna saat mengisi form pembuat level
     const activeElementId = document.activeElement.id;
     if (activeElementId && activeElementId.includes('builder')) {
         return; 
     }
 
-    // 1. LOGIKA SHORTCUT TAB (Memutar Ulang Audio)
+    // Tab untuk memutar audio
     if (e.key === 'Tab' || e.keyCode === 9) {
-        e.preventDefault(); // SANGAT PENTING: Mencegah kursor melompat keluar dari kotak ketik
+        e.preventDefault(); 
         e.stopPropagation();
-        
-        // Picu klik tombol Dengarkan hanya jika level sedang berjalan
         if (targetWord !== "" && !wordInput.disabled) {
             btnListen.click();
         }
     }
 
-    // 2. LOGIKA SHORTCUT ENTER (Evaluasi atau Lanjut)
+    // Enter untuk memeriksa atau lanjut
     if (e.key === 'Enter' || e.keyCode === 13) {
+        // Cek agar enter tidak bereaksi ganda saat modal pengaturan terbuka
+        if(!settingsModal.classList.contains('hidden')) return; 
+        
         e.preventDefault(); 
         e.stopPropagation(); 
 
@@ -152,7 +179,7 @@ window.addEventListener('keydown', function (e) {
             btnSubmit.click(); 
         }
     }
-}, true);
+}, true); 
 
 // -- MANAJEMEN SESI --
 function prepareSession(dataArray, levelName) {
@@ -177,8 +204,7 @@ function prepareSession(dataArray, levelName) {
         return errorRateB - errorRateA; 
     });
 
-    fileStatus.innerHTML = `<strong>Level Aktif: ${levelName}</strong> <br> ${sessionQueue.length} kata disiapkan.`;
-    fileStatus.style.color = "#0056b3";
+    fileStatus.textContent = `Level Aktif: ${levelName} (${sessionQueue.length} kata disiapkan)`;
     wordInput.disabled = false;
     btnSubmit.disabled = false;
     
@@ -191,9 +217,11 @@ function loadNextWord() {
         wordInput.value = '';
         feedbackArea.innerHTML = '';
         btnNext.style.display = 'none';
-        wordInput.focus(); 
+        
+        // Sengaja berikan sedikit jeda agar DOM browser stabil saat modal ditutup
+        setTimeout(() => wordInput.focus(), 50); 
     } else {
-        feedbackArea.innerHTML = '<div class="result-message" style="color:#28a745;">LUAR BIASA! Level ini telah Anda taklukkan.</div>';
+        feedbackArea.innerHTML = '<div class="feedback-row" style="color:var(--correct); font-family:Inter; letter-spacing:0; font-size:1.5rem;">Sesi Selesai. Kinerja Sempurna.</div>';
         wordInput.disabled = true;
         btnSubmit.disabled = true;
         btnNext.style.display = 'none';
@@ -206,12 +234,12 @@ btnClearData.addEventListener('click', () => {
         localStorage.removeItem('spellingAdaptiveDB');
         wordDatabase = {};
         sessionQueue = [];
-        fileStatus.textContent = "Statistik direset. Pilih level untuk mulai.";
-        fileStatus.style.color = "#333";
+        fileStatus.textContent = "Statistik direset. Pilih level di pengaturan.";
         wordInput.disabled = true;
         btnSubmit.disabled = true;
         feedbackArea.innerHTML = '';
         btnNext.style.display = 'none';
+        closeSettings();
     }
 });
 
@@ -234,12 +262,8 @@ btnSubmit.addEventListener('click', () => {
     const userInput = wordInput.value.toLowerCase().trim();
     const targetLower = targetWord.toLowerCase();
     
-    // Perbaikan Umpan Balik UX: Mengganti kegagalan diam-diam dengan peringatan visual
     feedbackArea.innerHTML = '';
-    if (userInput === "") {
-        feedbackArea.innerHTML = '<div class="result-message" style="color:#dc3545;">Sistem mendeteksi input kosong. Ketik ejaan terlebih dahulu.</div>';
-        return; 
-    }
+    if (userInput === "") return; 
     
     wordInput.blur(); 
 
@@ -247,7 +271,7 @@ btnSubmit.addEventListener('click', () => {
     comparisonContainer.style.textAlign = 'center';
     const userRow = document.createElement('div');
     userRow.classList.add('feedback-row');
-    userRow.innerHTML = '<span class="label">Jawaban Anda:</span>';
+    userRow.innerHTML = '<span class="label">Input:</span>';
     
     for (let i = 0; i < userInput.length; i++) {
         const span = document.createElement('span');
@@ -261,16 +285,10 @@ btnSubmit.addEventListener('click', () => {
     }
     comparisonContainer.appendChild(userRow);
 
-    const message = document.createElement('div');
-    message.classList.add('result-message');
-
     if (userInput === targetLower) {
         wordDatabase[targetLower].correct++; 
         sessionQueue.shift(); 
-        message.textContent = "Tepat sekali!";
-        message.style.color = "#28a745";
         feedbackArea.appendChild(comparisonContainer);
-        feedbackArea.appendChild(message);
     } else {
         wordDatabase[targetLower].wrong++; 
         const failedWord = sessionQueue.shift();
@@ -278,7 +296,7 @@ btnSubmit.addEventListener('click', () => {
         
         const targetRow = document.createElement('div');
         targetRow.classList.add('feedback-row');
-        targetRow.innerHTML = '<span class="label">Seharusnya:</span>';
+        targetRow.innerHTML = '<span class="label">Target:</span>';
         
         for (let i = 0; i < targetLower.length; i++) {
             const span = document.createElement('span');
@@ -292,24 +310,19 @@ btnSubmit.addEventListener('click', () => {
             targetRow.appendChild(span);
         }
         comparisonContainer.appendChild(targetRow);
-
-        message.textContent = "Ejaan salah. Kata ini akan diulang kembali.";
-        message.style.color = "#dc3545";
         feedbackArea.appendChild(comparisonContainer);
-        feedbackArea.appendChild(message);
     }
     
     const semanticBox = document.createElement('div');
     semanticBox.classList.add('semantic-box');
     const currentWordData = wordDatabase[targetLower];
     semanticBox.innerHTML = `
-        <strong>Terjemahan:</strong> ${currentWordData.translation} <br><br>
-        <strong>Definisi:</strong> ${currentWordData.definition}
+        <strong>[ID]</strong> ${currentWordData.translation} <br><br>
+        <strong>Def:</strong> ${currentWordData.definition}
     `;
     feedbackArea.appendChild(semanticBox);
     
     localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase));
-    
     btnNext.style.display = 'inline-block';
 });
 
