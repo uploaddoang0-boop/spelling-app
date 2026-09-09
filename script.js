@@ -1,11 +1,10 @@
 // -- ARSITEKTUR BASIS DATA --
 let wordDatabase = JSON.parse(localStorage.getItem('spellingAdaptiveDB')) || {};
-// Pangkalan data terpisah khusus untuk Level Kustom buatan pengguna
 let customLevelsDB = JSON.parse(localStorage.getItem('spellingCustomLevels')) || {}; 
 
 let sessionQueue = []; 
 let targetWord = "";
-let tempBuilderWords = []; // Variabel sementara untuk menampung kata saat membuat level
+let tempBuilderWords = []; 
 
 // -- REFERENSI ELEMEN --
 const levelSelector = document.getElementById('level-selector');
@@ -19,7 +18,6 @@ const btnNext = document.getElementById('btn-next');
 const wordInput = document.getElementById('word-input');
 const feedbackArea = document.getElementById('feedback-area');
 
-// Referensi Level Builder
 const builderLevelName = document.getElementById('builder-level-name');
 const builderWord = document.getElementById('builder-word');
 const builderTrans = document.getElementById('builder-trans');
@@ -28,11 +26,10 @@ const btnAddWord = document.getElementById('btn-add-word');
 const builderWordList = document.getElementById('builder-word-list');
 const btnSaveLevel = document.getElementById('btn-save-level');
 
-// -- FUNGSI DROPDOWN (GABUNGAN DATA STATIS & DINAMIS) --
+// -- FUNGSI DROPDOWN --
 function populateLevelDropdown() {
     levelSelector.innerHTML = '<option value="">-- Pilih Level Game --</option>'; 
     
-    // 1. Muat data statis dari levels.js (Jika ada)
     if (typeof preloadedLevels !== 'undefined') {
         const levels = Object.keys(preloadedLevels);
         levels.forEach(level => {
@@ -43,7 +40,6 @@ function populateLevelDropdown() {
         });
     }
 
-    // 2. Muat data Kustom dinamis dari localStorage
     const customLevels = Object.keys(customLevelsDB);
     if (customLevels.length > 0) {
         const separator = document.createElement('option');
@@ -81,7 +77,7 @@ btnLoadLevel.addEventListener('click', () => {
     prepareSession(levelData, levelName);
 });
 
-// -- LOGIKA LEVEL BUILDER (PEMBUAT LEVEL) --
+// -- LOGIKA LEVEL BUILDER --
 btnAddWord.addEventListener('click', () => {
     const w = builderWord.value.trim().toLowerCase();
     const t = builderTrans.value.trim();
@@ -126,29 +122,29 @@ btnSaveLevel.addEventListener('click', () => {
     alert(`Level "${lvlName}" berhasil disimpan ke sistem!`);
 });
 
-// -- FUNGSI SHORTCUT KEYBOARD GLOBAL (ENTER) DENGAN TELEMETRI --
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-        e.preventDefault(); // Mencegah perilaku bawaan peramban
-        console.log("[SISTEM] Tombol Enter terdeteksi.");
+// -- FUNGSI SHORTCUT KEYBOARD GLOBAL TINGKAT LANJUT --
+window.addEventListener('keydown', function (e) {
+    // Membaca input Enter ganda untuk stabilitas lintas perangkat
+    if (e.key === 'Enter' || e.keyCode === 13) {
+        
+        // Isolasi Analitis: Jika pengguna sedang mengetik di dalam form pembuat level, nonaktifkan shortcut
+        const activeElementId = document.activeElement.id;
+        if (activeElementId && activeElementId.includes('builder')) {
+            return; 
+        }
 
-        // Logika 1: Jika tombol Next terlihat di layar (bernilai 'inline-block')
-        if (btnNext.style.display === 'inline-block') {
-            console.log("[SISTEM] Mengeksekusi navigasi Next.");
-            btnNext.click();
-        } 
-        // Logika 2: Jika tombol Next sembunyi DAN tombol Periksa tidak dinonaktifkan
-        else if (btnSubmit.disabled === false) {
-            console.log("[SISTEM] Mengeksekusi evaluasi Periksa.");
-            btnSubmit.click();
-        } 
-        // Logika 3: Kondisi di mana level belum dimulai
-        else {
-            console.log("[SISTEM] Eksekusi ditolak: Sesi belum aktif.");
+        e.preventDefault(); 
+        e.stopPropagation(); // Mencegah browser melakukan eksekusi ganda
+
+        if (btnNext.style.display !== 'none') {
+            btnNext.click(); 
+        } else if (!wordInput.disabled) {
+            btnSubmit.click(); 
         }
     }
-});
-// -- MANAJEMEN SESI (SPACED REPETITION) --
+}, true); // Parameter true memaksa sistem menangkap event sebelum diblokir elemen lain
+
+// -- MANAJEMEN SESI --
 function prepareSession(dataArray, levelName) {
     let sessionWords = [];
     
@@ -165,7 +161,6 @@ function prepareSession(dataArray, levelName) {
     
     localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase));
 
-    // Urutkan kata dari yang paling sering salah
     sessionQueue = sessionWords.sort((a, b) => {
         const errorRateA = wordDatabase[a].wrong - wordDatabase[a].correct;
         const errorRateB = wordDatabase[b].wrong - wordDatabase[b].correct;
@@ -229,8 +224,12 @@ btnSubmit.addEventListener('click', () => {
     const userInput = wordInput.value.toLowerCase().trim();
     const targetLower = targetWord.toLowerCase();
     
+    // Perbaikan Umpan Balik UX: Mengganti kegagalan diam-diam dengan peringatan visual
     feedbackArea.innerHTML = '';
-    if (userInput === "") return; 
+    if (userInput === "") {
+        feedbackArea.innerHTML = '<div class="result-message" style="color:#dc3545;">Sistem mendeteksi input kosong. Ketik ejaan terlebih dahulu.</div>';
+        return; 
+    }
     
     wordInput.blur(); 
 
@@ -309,6 +308,5 @@ btnNext.addEventListener('click', () => {
     if (sessionQueue.length > 0) { speakWord(targetWord); }
 });
 
-// Status awal
 wordInput.disabled = true;
 btnSubmit.disabled = true;
