@@ -1,85 +1,154 @@
+// -- ARSITEKTUR BASIS DATA --
 let wordDatabase = JSON.parse(localStorage.getItem('spellingAdaptiveDB')) || {};
+// Pangkalan data terpisah khusus untuk Level Kustom buatan pengguna
+let customLevelsDB = JSON.parse(localStorage.getItem('spellingCustomLevels')) || {}; 
+
 let sessionQueue = []; 
 let targetWord = "";
+let tempBuilderWords = []; // Variabel sementara untuk menampung kata saat membuat level
 
+// -- REFERENSI ELEMEN --
 const levelSelector = document.getElementById('level-selector');
 const btnLoadLevel = document.getElementById('btn-load-level');
-const fileInput = document.getElementById('file-input');
 const fileStatus = document.getElementById('file-status');
 const btnClearData = document.getElementById('btn-clear-data');
+
 const btnListen = document.getElementById('btn-listen');
 const btnSubmit = document.getElementById('btn-submit');
 const btnNext = document.getElementById('btn-next');
 const wordInput = document.getElementById('word-input');
 const feedbackArea = document.getElementById('feedback-area');
 
-// -- INISIALISASI DROPDOWN LEVEL --
+// Referensi Level Builder
+const builderLevelName = document.getElementById('builder-level-name');
+const builderWord = document.getElementById('builder-word');
+const builderTrans = document.getElementById('builder-trans');
+const builderDef = document.getElementById('builder-def');
+const btnAddWord = document.getElementById('btn-add-word');
+const builderWordList = document.getElementById('builder-word-list');
+const btnSaveLevel = document.getElementById('btn-save-level');
+
+// -- FUNGSI DROPDOWN (GABUNGAN DATA STATIS & DINAMIS) --
 function populateLevelDropdown() {
-    // preloadedLevels berasal dari berkas levels.js
+    levelSelector.innerHTML = '<option value="">-- Pilih Level Game --</option>'; 
+    
+    // 1. Muat data statis dari levels.js (Jika ada)
     if (typeof preloadedLevels !== 'undefined') {
         const levels = Object.keys(preloadedLevels);
         levels.forEach(level => {
             const option = document.createElement('option');
-            option.value = level;
+            option.value = `PRELOADED|${level}`;
             option.textContent = level;
             levelSelector.appendChild(option);
         });
     }
-}
-populateLevelDropdown();
 
-// -- LOGIKA MEMUAT LEVEL DARI DROPDOWN --
+    // 2. Muat data Kustom dinamis dari localStorage
+    const customLevels = Object.keys(customLevelsDB);
+    if (customLevels.length > 0) {
+        const separator = document.createElement('option');
+        separator.disabled = true;
+        separator.textContent = "─── LEVEL KUSTOM ANDA ───";
+        levelSelector.appendChild(separator);
+
+        customLevels.forEach(level => {
+            const option = document.createElement('option');
+            option.value = `CUSTOM|${level}`;
+            option.textContent = `⭐ ${level}`;
+            levelSelector.appendChild(option);
+        });
+    }
+}
+populateLevelDropdown(); 
+
+// -- LOGIKA MEMUAT LEVEL --
 btnLoadLevel.addEventListener('click', () => {
-    const selectedLevel = levelSelector.value;
-    if (!selectedLevel) {
+    const selection = levelSelector.value;
+    if (!selection) {
         alert("Silakan pilih level terlebih dahulu!");
         return;
     }
 
-    const levelData = preloadedLevels[selectedLevel]; 
-    prepareSession(levelData, selectedLevel);
+    const [source, levelName] = selection.split('|');
+    let levelData = [];
+
+    if (source === 'PRELOADED') {
+        levelData = preloadedLevels[levelName];
+    } else if (source === 'CUSTOM') {
+        levelData = customLevelsDB[levelName];
+    }
+
+    prepareSession(levelData, levelName);
 });
 
-// -- LOGIKA MEMUAT LEVEL KUSTOM DARI FILE TXT --
-fileInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+// -- LOGIKA LEVEL BUILDER (PEMBUAT LEVEL) --
+btnAddWord.addEventListener('click', () => {
+    const w = builderWord.value.trim().toLowerCase();
+    const t = builderTrans.value.trim();
+    const d = builderDef.value.trim() || "Tidak ada definisi";
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const content = e.target.result;
-        const lines = content.split('\n').filter(line => line.trim().length > 0);
-        
-        let customLevelData = [];
-        lines.forEach(line => {
-            const parts = line.split('|');
-            const word = parts[0] ? parts[0].trim().toLowerCase() : "";
-            const trans = parts[1] ? parts[1].trim() : "Terjemahan belum tersedia.";
-            const def = parts[2] ? parts[2].trim() : "Definisi belum tersedia.";
-            
-            if (word !== "") {
-                customLevelData.push({ word: word, trans: trans, def: def });
-            }
-        });
-        
-        const levelName = file.name.replace('.txt', '').replace(/_/g, ' ').toUpperCase();
-        prepareSession(customLevelData, `KUSTOM: ${levelName}`);
-        fileInput.value = ''; 
-    };
-    reader.readAsText(file);
+    if (w === "" || t === "") {
+        alert("Kata bahasa Inggris dan Terjemahan wajib diisi.");
+        return;
+    }
+
+    tempBuilderWords.push({ word: w, trans: t, def: d });
+    
+    const li = document.createElement('li');
+    li.textContent = `${w} - ${t}`;
+    builderWordList.appendChild(li);
+
+    builderWord.value = '';
+    builderTrans.value = '';
+    builderDef.value = '';
+    builderWord.focus();
+
+    btnSaveLevel.style.display = 'block';
 });
 
-// -- FUNGSI INTI: MENYIAPKAN SESI (HYBRID ADAPTIF) --
+btnSaveLevel.addEventListener('click', () => {
+    const lvlName = builderLevelName.value.trim().toUpperCase();
+    
+    if (lvlName === "") {
+        alert("Harap isi Nama Level terlebih dahulu!");
+        return;
+    }
+
+    customLevelsDB[lvlName] = tempBuilderWords;
+    localStorage.setItem('spellingCustomLevels', JSON.stringify(customLevelsDB));
+
+    tempBuilderWords = [];
+    builderWordList.innerHTML = '';
+    builderLevelName.value = '';
+    btnSaveLevel.style.display = 'none';
+
+    populateLevelDropdown();
+    alert(`Level "${lvlName}" berhasil disimpan ke sistem!`);
+});
+
+// -- FUNGSI SHORTCUT KEYBOARD GLOBAL (ENTER) --
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+        e.preventDefault(); 
+        
+        // Logika prioritas
+        if (btnNext.style.display !== 'none') {
+            btnNext.click(); 
+        } else if (!wordInput.disabled) {
+            btnSubmit.click(); 
+        }
+    }
+});
+
+// -- MANAJEMEN SESI (SPACED REPETITION) --
 function prepareSession(dataArray, levelName) {
     let sessionWords = [];
     
-    // 1. Registrasi kata ke database utama jika belum ada (untuk melacak statistik)
     dataArray.forEach(item => {
         const w = item.word.toLowerCase();
         if (!wordDatabase[w]) {
             wordDatabase[w] = { correct: 0, wrong: 0, translation: item.trans, definition: item.def };
         } else {
-            // Perbarui arti jika ada perubahan
             wordDatabase[w].translation = item.trans;
             wordDatabase[w].definition = item.def;
         }
@@ -88,15 +157,13 @@ function prepareSession(dataArray, levelName) {
     
     localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase));
 
-    // 2. Susun antrean KHUSUS untuk kata-kata di level ini saja
-    // Urutkan berdasarkan rekam jejak kesalahan tertinggi
+    // Urutkan kata dari yang paling sering salah
     sessionQueue = sessionWords.sort((a, b) => {
         const errorRateA = wordDatabase[a].wrong - wordDatabase[a].correct;
         const errorRateB = wordDatabase[b].wrong - wordDatabase[b].correct;
         return errorRateB - errorRateA; 
     });
 
-    // 3. Perbarui UI
     fileStatus.innerHTML = `<strong>Level Aktif: ${levelName}</strong> <br> ${sessionQueue.length} kata disiapkan.`;
     fileStatus.style.color = "#0056b3";
     wordInput.disabled = false;
@@ -111,21 +178,18 @@ function loadNextWord() {
         wordInput.value = '';
         feedbackArea.innerHTML = '';
         btnNext.style.display = 'none';
-        wordInput.focus();
+        wordInput.focus(); 
     } else {
         feedbackArea.innerHTML = '<div class="result-message" style="color:#28a745;">LUAR BIASA! Level ini telah Anda taklukkan.</div>';
         wordInput.disabled = true;
         btnSubmit.disabled = true;
         btnNext.style.display = 'none';
-        
-        // Coba kosongkan level selector
         levelSelector.value = "";
     }
 }
 
-// -- LOGIKA HAPUS DATABASE --
 btnClearData.addEventListener('click', () => {
-    if(confirm("PERINGATAN: Tindakan ini akan menghapus riwayat statistik Anda. Kata-kata di dropdown TIDAK akan hilang, hanya statistiknya yang di-reset. Lanjutkan?")) {
+    if(confirm("Hanya menghapus riwayat statistik kesalahan. Level Kustom TIDAK akan terhapus. Lanjutkan?")) {
         localStorage.removeItem('spellingAdaptiveDB');
         wordDatabase = {};
         sessionQueue = [];
@@ -138,7 +202,7 @@ btnClearData.addEventListener('click', () => {
     }
 });
 
-// -- MODUL TEXT-TO-SPEECH & EVALUASI --
+// -- EVALUASI & TEXT-TO-SPEECH --
 function speakWord(text) {
     if (!text) return;
     if ('speechSynthesis' in window) {
@@ -146,8 +210,6 @@ function speakWord(text) {
         utterance.lang = 'en-US';
         utterance.rate = 0.8;
         window.speechSynthesis.speak(utterance);
-    } else {
-        alert("Browser Anda tidak mendukung Text-to-Speech.");
     }
 }
 
@@ -160,10 +222,9 @@ btnSubmit.addEventListener('click', () => {
     const targetLower = targetWord.toLowerCase();
     
     feedbackArea.innerHTML = '';
-    if (userInput === "") {
-        feedbackArea.textContent = "Silakan ketik sesuatu terlebih dahulu.";
-        return; 
-    }
+    if (userInput === "") return; 
+    
+    wordInput.blur(); 
 
     const comparisonContainer = document.createElement('div');
     comparisonContainer.style.textAlign = 'center';
@@ -188,16 +249,13 @@ btnSubmit.addEventListener('click', () => {
 
     if (userInput === targetLower) {
         wordDatabase[targetLower].correct++; 
-        sessionQueue.shift(); // Buang dari antrean karena benar
-        
+        sessionQueue.shift(); 
         message.textContent = "Tepat sekali!";
         message.style.color = "#28a745";
         feedbackArea.appendChild(comparisonContainer);
         feedbackArea.appendChild(message);
     } else {
         wordDatabase[targetLower].wrong++; 
-        
-        // HUKUMAN: Lempar ke belakang antrean agar diuji lagi
         const failedWord = sessionQueue.shift();
         sessionQueue.push(failedWord);
         
@@ -220,7 +278,6 @@ btnSubmit.addEventListener('click', () => {
 
         message.textContent = "Ejaan salah. Kata ini akan diulang kembali.";
         message.style.color = "#dc3545";
-        
         feedbackArea.appendChild(comparisonContainer);
         feedbackArea.appendChild(message);
     }
@@ -235,6 +292,7 @@ btnSubmit.addEventListener('click', () => {
     feedbackArea.appendChild(semanticBox);
     
     localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase));
+    
     btnNext.style.display = 'inline-block';
 });
 
@@ -243,6 +301,6 @@ btnNext.addEventListener('click', () => {
     if (sessionQueue.length > 0) { speakWord(targetWord); }
 });
 
-// Matikan input saat awal muat sebelum level dipilih
+// Status awal
 wordInput.disabled = true;
 btnSubmit.disabled = true;
