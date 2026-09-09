@@ -10,41 +10,45 @@
     <div class="container">
         <h1>Spelling Test Game</h1>
         
-        <!-- Area Dropdown Level & Impor Kustom -->
+        <!-- AREA 1: Kontrol Game Utama -->
         <div class="file-control">
             <select id="level-selector" class="dropdown-menu">
                 <option value="">-- Pilih Level Game --</option>
-                <!-- Opsi level akan dimuat otomatis oleh file levels.js -->
             </select>
             <button id="btn-load-level" class="primary-btn" style="margin-bottom: 15px; background-color:#28a745;">Mainkan Level</button>
-            
-            <hr style="border:0; border-top:1px solid #ccc; margin: 15px 0;">
-            
-            <label style="font-size:12px; color:#555;">Atau impor Level Kustom (.txt):</label>
-            <input type="file" id="file-input" accept=".txt">
-            
-            <div id="file-status" style="margin-top: 10px;">Pilih level di atas untuk memulai.</div>
+            <div id="file-status">Pilih level di atas untuk memulai.</div>
             <button id="btn-clear-data">Hapus Riwayat Statistik Kesalahan</button>
         </div>
+
+        <!-- AREA 2: Pembuat Level Kustom (Level Builder) -->
+        <div class="file-control custom-builder">
+            <h3 style="margin-top:0; font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">+ Buat Level Kustom</h3>
+            <input type="text" id="builder-level-name" placeholder="Nama Level (misal: Geoteknik)" autocomplete="off">
+            
+            <div class="builder-inputs">
+                <input type="text" id="builder-word" placeholder="Kata (Inggris)" autocomplete="off">
+                <input type="text" id="builder-trans" placeholder="Terjemahan" autocomplete="off">
+                <input type="text" id="builder-def" placeholder="Definisi (Opsional)" autocomplete="off">
+            </div>
+            
+            <button id="btn-add-word" style="background-color: #17a2b8; color: white;">Tambah ke Antrean</button>
+            <ul id="builder-word-list"></ul>
+            <button id="btn-save-level" style="background-color: #ffc107; color: black; display: none;">Simpan Level Baru</button>
+        </div>
         
-        <!-- Tombol untuk melafalkan kata -->
+        <!-- AREA 3: Antarmuka Pengujian -->
         <button id="btn-listen" class="primary-btn">Dengarkan Kata</button>
         
-        <!-- Area input untuk pengguna mengetik -->
         <div class="input-section">
-            <input type="text" id="word-input" placeholder="Ketik kata yang Anda dengar..." autocomplete="off">
+            <input type="text" id="word-input" placeholder="Ketik kata... (Tekan Enter)" autocomplete="off">
             <button id="btn-submit">Periksa</button>
         </div>
 
-        <!-- Area untuk menampilkan hasil atau pesan kesalahan -->
         <div id="feedback-area"></div>
-        
-        <!-- Tombol Navigasi (Disembunyikan di awal sesi) -->
-        <button id="btn-next" style="display: none;">Kata Selanjutnya &raquo;</button>
+        <button id="btn-next" style="display: none;">Kata Selanjutnya &raquo; (Tekan Enter)</button>
     </div>
 
     <!-- PENGHUBUNG LOGIKA JAVASCRIPT -->
-    <!-- URUTAN INI SANGAT KRUSIAL: Pangkalan data level harus dimuat sebelum logika inti -->
     <script src="levels.js"></script>
     <script src="script.js"></script>
 </body>
