@@ -1,166 +1,320 @@
+/* --- TEMA FOCUSED TYPIST --- */
+:root {
+    --bg-main: #323437;        /* Arang matte utama */
+    --bg-alt: #2c2e31;         /* Kartu dan kontainer */
+    --text-main: #d1d0c5;      /* Teks standar krem hangat */
+    --text-muted: #646669;     /* Teks abu-abu redup (untuk shortcut/informasi) */
+    --correct: #4ade80;        /* Hijau mint cerah */
+    --incorrect: #ca4754;      /* Merah coral */
+    --accent: #e2b714;         /* Aksen kuning (seperti kursor Monkeytype) */
+}
+
 body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
     margin: 0;
-    background-color: #f4f4f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
 }
 
-.container {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    text-align: center;
-    width: 90%;
-    max-width: 400px;
-}
-
-button {
-    padding: 10px 15px;
-    margin: 10px 5px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-#btn-listen {
-    background-color: #0056b3;
-    color: white;
+/* Header & Navigasi */
+header {
     width: 100%;
-    margin-bottom: 20px;
+    max-width: 800px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 1.5rem;
+    box-sizing: border-box;
 }
 
-input[type="text"] {
-    width: 60%;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
+.logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: -1px;
+}
+
+.logo span {
+    color: var(--text-main);
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.icon-btn:hover {
+    color: var(--text-main);
+}
+
+/* Container Utama */
+.typing-container {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    box-sizing: border-box;
+    margin-top: 5vh;
+}
+
+/* Status Bar */
+.status-bar {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* Audio Button */
+.audio-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    margin-bottom: 3rem;
+    transition: color 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+.audio-btn:hover, .audio-btn:focus {
+    color: var(--text-main);
+    outline: none;
+}
+
+.shortcut {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    background: var(--bg-alt);
+    padding: 2px 6px;
     border-radius: 4px;
-}
-/* --- TAMBAHAN MODUL 2: Visual Evaluasi Ejaan --- */
-.char-correct {
-    color: #28a745; /* Hijau standar keberhasilan */
-    font-weight: bold;
-    font-size: 24px;
-    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-left: 5px;
 }
 
-.char-incorrect {
-    color: #dc3545; /* Merah standar peringatan */
-    font-weight: bold;
-    font-size: 24px;
-    letter-spacing: 2px;
-    text-decoration: underline;
+/* Input Pengetikan */
+.input-section {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
-.result-message {
-    margin-top: 15px;
-    font-weight: bold;
-    font-size: 18px;
+#word-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-main);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2.5rem;
+    text-align: center;
+    caret-color: var(--accent);
 }
-/* --- TAMBAHAN FITUR KOMPARASI --- */
+
+#word-input::placeholder {
+    color: var(--bg-alt);
+}
+
+/* Evaluasi Visual (Feedback) */
+#feedback-area {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
 .feedback-row {
-    margin: 15px 0; /* Memperlebar jarak antar baris */
-    text-align: left;
-    display: block; /* Mengubah inline-block menjadi block agar bertumpuk vertikal */
-    background-color: #f8f9fa; /* Menambahkan latar belakang abu-abu sangat muda */
-    padding: 10px 15px; /* Memberikan ruang bernapas di dalam kotak */
-    border-radius: 6px;
-    border-left: 4px solid #ccc; /* Garis batas struktural di kiri */
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    letter-spacing: 5px; /* Spasi lebar agar mudah dianalisis */
+    margin: 10px 0;
+    display: block;
 }
 
 .label {
-    font-size: 14px;
-    color: #555;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-muted);
     display: block;
     margin-bottom: 5px;
+    letter-spacing: 0;
+}
+
+.char-correct {
+    color: var(--correct);
+}
+
+.char-incorrect {
+    color: var(--incorrect);
+    text-decoration: underline;
+    text-decoration-color: var(--incorrect);
 }
 
 .char-neutral {
-    color: #adb5bd; /* Abu-abu: untuk huruf yang sudah diketik dengan benar */
-    font-size: 24px;
-    letter-spacing: 2px;
+    color: var(--text-muted);
 }
 
 .char-correction {
-    color: #155724; 
-    background-color: #d4edda; /* Sorotan latar belakang hijau */
-    font-weight: bold;
-    font-size: 24px;
-    letter-spacing: 2px;
-    padding: 0 2px;
-    border-radius: 3px;
-}
-/* --- TAMBAHAN MODUL 3: Kontrol File & Navigasi --- */
-.file-control {
-    background-color: #e9ecef;
-    padding: 15px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    text-align: left;
-    border: 1px dashed #ccc;
-}
-
-#file-input {
-    width: 100%;
-    margin-bottom: 10px;
-}
-
-#file-status {
-    color: #495057;
-    font-style: italic;
-}
-
-#btn-next {
-    background-color: #28a745;
-    color: white;
-    width: 100%;
-    margin-top: 15px;
-}   
-#btn-clear-data {
-    background-color: #dc3545;
-    color: white;
-    width: 100%;
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-#btn-clear-data:hover {
-    background-color: #c82333;
-}
-/* --- TAMBAHAN MODUL 4: Kotak Semantik (Terjemahan & Definisi) --- */
-.semantic-box {
-    margin-top: 15px;
-    padding: 15px;
-    background-color: #e3f2fd; /* Biru muda yang lembut */
-    border-left: 4px solid #0056b3;
-    text-align: left;
+    color: var(--bg-main);
+    background-color: var(--correct);
     border-radius: 4px;
-    font-size: 14px;
-    line-height: 1.5;
-    color: #333;
-    animation: fadeIn 0.3s ease-in-out;
+    padding: 2px 4px;
+    font-weight: bold;
+}
+
+/* Semantic Box (Arti Kata) */
+.semantic-box {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: var(--bg-alt);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    border-top: 2px solid var(--accent);
 }
 
 .semantic-box strong {
-    color: #0056b3;
+    color: var(--text-muted);
+    margin-right: 5px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Modal Pengaturan (Settings) */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
 }
-.dropdown-menu {
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background-color: var(--bg-main);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    border: 1px solid var(--bg-alt);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.close-btn:hover { color: var(--incorrect); }
+
+/* Form Elements di Modal */
+.control-group {
+    background: var(--bg-alt);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.control-group label, .control-group h3 {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+input[type="text"], .dropdown-menu {
     width: 100%;
     padding: 10px;
+    background: var(--bg-main);
+    border: 1px solid var(--bg-alt);
+    color: var(--text-main);
+    border-radius: 6px;
     margin-bottom: 10px;
-    font-size: 16px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    background-color: white;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
+
+input[type="text"]:focus, .dropdown-menu:focus {
+    border-color: var(--text-muted);
+    outline: none;
+}
+
+/* Tombol Modal */
+.action-btn, .danger-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.action-btn.outline {
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-main);
+}
+.action-btn.outline:hover { background: var(--bg-main); }
+
+.action-btn.secondary {
+    background: var(--text-muted);
+    color: var(--bg-main);
+}
+.action-btn.accent {
+    background: var(--accent);
+    color: var(--bg-main);
+}
+.danger-btn {
+    background: transparent;
+    border: 1px solid var(--incorrect);
+    color: var(--incorrect);
+}
+.danger-btn:hover {
+    background: var(--incorrect);
+    color: white;
+}
+
+#builder-word-list {
+    list-style-type: none;
+    padding: 0; margin: 10px 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+#builder-word-list li { margin-bottom: 5px; }
