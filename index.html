@@ -22,7 +22,7 @@
         </button>
     </header>
 
-    <!-- KOTAK MODAL PENGATURAN (Tersembunyi) -->
+   <!-- KOTAK MODAL PENGATURAN (Tersembunyi) -->
     <div id="settings-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -30,6 +30,15 @@
                 <button id="btn-close-settings" class="close-btn">&times;</button>
             </div>
             
+            <!-- TAMBAHAN BARU: Umpan Balik Sensorik -->
+            <div class="control-group">
+                <h3>Umpan Balik Multisensori</h3>
+                <div class="toggle-row">
+                    <button id="toggle-sound" class="toggle-btn">Suara: ON</button>
+                    <button id="toggle-vibrate" class="toggle-btn">Getar: ON</button>
+                </div>
+            </div>
+
             <div class="control-group">
                 <label>Pilih Level Eksekusi:</label>
                 <select id="level-selector" class="dropdown-menu">
