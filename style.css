@@ -47,28 +47,39 @@ input[type="text"]:focus { outline: 1px solid var(--text-muted); }
     background-color: var(--bg-alt);
     border-radius: 8px; padding: 8px 16px;
     display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px;
-    margin-bottom: 3rem; font-size: 0.9rem;
+    margin-bottom: 1rem; font-size: 0.9rem;
 }
 .config-group { display: flex; gap: 12px; align-items: center; }
-.config-sep { width: 2px; height: 14px; background-color: var(--text-muted); opacity: 0.4; border-radius: 2px; }
+.config-sep { width: 1px; height: 16px; background-color: var(--text-muted); opacity: 0.3; }
 .config-btn {
     background: transparent; border: none; color: var(--text-muted);
     cursor: pointer; padding: 0; font-family: inherit; font-size: inherit;
-    transition: color 0.1s; letter-spacing: 0.5px;
+    transition: color 0.1s; letter-spacing: 0.5px; outline: none;
 }
 .config-btn:hover { color: var(--text-main); }
 .config-btn.active { color: var(--accent); font-weight: bold; }
 
-.status-bar { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
-
-/* Minimalist Audio Button */
-.audio-btn.pill {
-    background: transparent; border: none; color: var(--text-muted);
-    font-size: 1rem; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; margin-bottom: 2rem; width: auto; min-height: 48px;
-    font-family: inherit; transition: color 0.2s;
+/* Custom Target Input Inline */
+.custom-target-input {
+    width: 40px; background: transparent; border: none;
+    border-bottom: 1px solid var(--accent); color: var(--accent);
+    font-family: inherit; font-size: inherit; text-align: center; outline: none;
+    padding: 0;
 }
-.audio-btn.pill:hover, .audio-btn.pill:active { color: var(--text-main); }
+.custom-target-input::-webkit-outer-spin-button, .custom-target-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.status-info { font-family: 'Inter', sans-serif; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2rem; text-align: center; }
+.status-bar { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; }
+
+/* Audio Pill Button */
+.audio-btn.pill {
+    background: var(--bg-alt); border: none; color: var(--text-muted);
+    font-size: 0.95rem; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; margin-bottom: 2rem; width: 100%; max-width: 250px; min-height: 44px;
+    border-radius: 22px; font-family: 'Inter', sans-serif; transition: all 0.2s;
+}
+.audio-btn.pill:hover, .audio-btn.pill:active { background: #3c3f44; color: var(--text-main); }
+.shortcut { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); }
 
 /* Input Target */
 .input-section { width: 100%; text-align: center; margin-bottom: 1.5rem; }
@@ -90,20 +101,21 @@ input[type="text"]:focus { outline: 1px solid var(--text-muted); }
 .toggle-btn { background: var(--bg-main); color: var(--text-muted); transition: all 0.2s; }
 .toggle-btn.active { color: var(--accent); }
 
-.mobile-wide { width: 100%; max-width: 400px; font-family: inherit; font-weight: normal; font-size: 1rem; }
-/* Dark button replacement for the bright yellow next button */
-.dark-btn { background-color: var(--bg-alt); color: var(--text-main); }
+.mobile-wide { width: 100%; max-width: 400px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1rem; }
+/* Dark Next Button */
+.dark-btn { background-color: var(--bg-alt); color: var(--accent); transition: background-color 0.2s; }
 .dark-btn:hover { background-color: #3c3f44; }
 
 /* Evaluasi & Semantic Box */
 #feedback-area { width: 100%; text-align: center; max-width: 500px; margin: 0 auto; }
 .feedback-row { font-size: 2rem; letter-spacing: 5px; margin: 10px 0; display: block; }
 .label { font-family: 'Inter', sans-serif; font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px; letter-spacing: 0; }
-.char-correct { color: var(--text-main); } /* Diubah agar lebih soft, salah baru merah */
+.char-correct { color: var(--text-main); } 
 .char-incorrect { color: var(--incorrect); text-decoration: underline; }
 .char-neutral { color: var(--text-muted); }
 .char-correction { color: var(--bg-main); background-color: var(--correct); border-radius: 4px; padding: 0 4px; font-weight: bold; }
 
+/* Flat Semantic Box */
 .semantic-box {
     margin-top: 1.5rem; padding: 1.2rem 1.5rem;
     background-color: var(--bg-alt); border-radius: 8px;
@@ -113,7 +125,8 @@ input[type="text"]:focus { outline: 1px solid var(--text-muted); }
     font-family: 'Inter', sans-serif;
 }
 .semantic-box .trans-text { color: var(--text-main); font-weight: 600; margin-bottom: 4px; display:block; }
-.star-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; transition: color 0.2s; }
+.star-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; transition: transform 0.2s, color 0.2s; outline: none; }
+.star-btn:active { transform: scale(1.3); }
 .star-btn.starred { color: var(--accent); }
 
 @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
