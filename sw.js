@@ -1,4 +1,4 @@
-const CACHE_NAME = 'spelling-app-cache-v10';
+const CACHE_NAME = 'spelling-app-cache-v11';
 const urlsToCache = [
     './',
     './index.html',
