@@ -1,6 +1,8 @@
-// -- ARSITEKTUR BASIS DATA --
+// -- ARSITEKTUR BASIS DATA & PREFERENSI --
 let wordDatabase = JSON.parse(localStorage.getItem('spellingAdaptiveDB')) || {};
 let customLevelsDB = JSON.parse(localStorage.getItem('spellingCustomLevels')) || {}; 
+let soundEnabled = JSON.parse(localStorage.getItem('spellingSound')) ?? true;
+let vibrationEnabled = JSON.parse(localStorage.getItem('spellingVibrate')) ?? true;
 
 let sessionQueue = []; 
 let targetWord = "";
@@ -26,6 +28,87 @@ const btnAddWord = document.getElementById('btn-add-word');
 const builderWordList = document.getElementById('builder-word-list');
 const btnSaveLevel = document.getElementById('btn-save-level');
 
+// Toggle UI
+const btnToggleSound = document.getElementById('toggle-sound');
+const btnToggleVibrate = document.getElementById('toggle-vibrate');
+
+// -- MESIN UMPAN BALIK SENSORIK (AUDIO & HAPTIC) --
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+// Inisialisasi AudioContext harus dipicu oleh gestur pengguna (Kebijakan Browser)
+function initAudio() {
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+// Mengikat inisialisasi pada interaksi pertama (klik/ketik)
+window.addEventListener('click', initAudio, { once: true });
+window.addEventListener('keydown', initAudio, { once: true });
+
+function playFeedbackTone(isCorrect) {
+    if (!audioCtx || !soundEnabled) return;
+    initAudio(); 
+
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    const now = audioCtx.currentTime;
+    
+    if (isCorrect) {
+        // Nada Lembut Frekuensi Tinggi (650Hz, Sine wave, 100ms)
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(650, now);
+        gainNode.gain.setValueAtTime(0.5, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        oscillator.start(now);
+        oscillator.stop(now + 0.1);
+    } else {
+        // Nada Tumpul Frekuensi Rendah (180Hz, Triangle wave, 90ms)
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(180, now);
+        gainNode.gain.setValueAtTime(0.6, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+        oscillator.start(now);
+        oscillator.stop(now + 0.09);
+    }
+}
+
+function triggerVibration(isCorrect) {
+    if (!vibrationEnabled || !('vibrate' in navigator)) return;
+    if (isCorrect) {
+        navigator.vibrate(15); // Getaran sukses mikroskopis
+    } else {
+        navigator.vibrate([40, 50, 40]); // Pola salah ganda
+    }
+}
+
+function updatePreferencesUI() {
+    btnToggleSound.textContent = soundEnabled ? 'Suara: ON' : 'Suara: OFF';
+    btnToggleSound.classList.toggle('active', soundEnabled);
+    
+    btnToggleVibrate.textContent = vibrationEnabled ? 'Getar: ON' : 'Getar: OFF';
+    btnToggleVibrate.classList.toggle('active', vibrationEnabled);
+}
+updatePreferencesUI();
+
+btnToggleSound.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem('spellingSound', soundEnabled);
+    updatePreferencesUI();
+    if (soundEnabled) initAudio();
+});
+
+btnToggleVibrate.addEventListener('click', () => {
+    vibrationEnabled = !vibrationEnabled;
+    localStorage.setItem('spellingVibrate', vibrationEnabled);
+    updatePreferencesUI();
+    if (vibrationEnabled) triggerVibration(true); // Uji getar saat dihidupkan
+});
+
+
 // -- LOGIKA MODAL SETTINGS UI --
 const settingsModal = document.getElementById('settings-modal');
 const btnSettingsToggle = document.getElementById('btn-settings-toggle');
@@ -37,18 +120,13 @@ function openSettings() {
 
 function closeSettings() {
     settingsModal.classList.add('hidden');
-    // UX: Autofocus kembali ke kotak ketik jika level sedang berjalan
     if(!wordInput.disabled) wordInput.focus();
 }
 
 btnSettingsToggle.addEventListener('click', openSettings);
 btnCloseSettings.addEventListener('click', closeSettings);
-
-// Menutup modal jika area di luar kotak hitam diklik
 window.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-        closeSettings();
-    }
+    if (e.target === settingsModal) closeSettings();
 });
 
 // -- FUNGSI DROPDOWN --
@@ -91,16 +169,9 @@ btnLoadLevel.addEventListener('click', () => {
     }
 
     const [source, levelName] = selection.split('|');
-    let levelData = [];
-
-    if (source === 'PRELOADED') {
-        levelData = preloadedLevels[levelName];
-    } else if (source === 'CUSTOM') {
-        levelData = customLevelsDB[levelName];
-    }
-
+    let levelData = source === 'PRELOADED' ? preloadedLevels[levelName] : customLevelsDB[levelName];
+    
     prepareSession(levelData, levelName);
-    // Otomatis menutup menu setelah level berhasil dimuat
     closeSettings();
 });
 
@@ -116,33 +187,23 @@ btnAddWord.addEventListener('click', () => {
     }
 
     tempBuilderWords.push({ word: w, trans: t, def: d });
-    
     const li = document.createElement('li');
     li.textContent = `${w} - ${t}`;
     builderWordList.appendChild(li);
 
-    builderWord.value = '';
-    builderTrans.value = '';
-    builderDef.value = '';
+    builderWord.value = ''; builderTrans.value = ''; builderDef.value = '';
     builderWord.focus();
-
     btnSaveLevel.style.display = 'block';
 });
 
 btnSaveLevel.addEventListener('click', () => {
     const lvlName = builderLevelName.value.trim().toUpperCase();
-    
-    if (lvlName === "") {
-        alert("Harap isi Nama Level terlebih dahulu!");
-        return;
-    }
+    if (lvlName === "") { alert("Harap isi Nama Level terlebih dahulu!"); return; }
 
     customLevelsDB[lvlName] = tempBuilderWords;
     localStorage.setItem('spellingCustomLevels', JSON.stringify(customLevelsDB));
 
-    tempBuilderWords = [];
-    builderWordList.innerHTML = '';
-    builderLevelName.value = '';
+    tempBuilderWords = []; builderWordList.innerHTML = ''; builderLevelName.value = '';
     btnSaveLevel.style.display = 'none';
 
     populateLevelDropdown();
@@ -152,22 +213,15 @@ btnSaveLevel.addEventListener('click', () => {
 // -- FUNGSI SHORTCUT KEYBOARD GLOBAL --
 window.addEventListener('keydown', function (e) {
     const activeElementId = document.activeElement.id;
-    if (activeElementId && activeElementId.includes('builder')) {
-        return; 
-    }
+    if (activeElementId && activeElementId.includes('builder')) return; 
 
-    // Tab untuk memutar audio
     if (e.key === 'Tab' || e.keyCode === 9) {
         e.preventDefault(); 
         e.stopPropagation();
-        if (targetWord !== "" && !wordInput.disabled) {
-            btnListen.click();
-        }
+        if (targetWord !== "" && !wordInput.disabled) btnListen.click();
     }
 
-    // Enter untuk memeriksa atau lanjut
     if (e.key === 'Enter' || e.keyCode === 13) {
-        // Cek agar enter tidak bereaksi ganda saat modal pengaturan terbuka
         if(!settingsModal.classList.contains('hidden')) return; 
         
         e.preventDefault(); 
@@ -190,8 +244,7 @@ function prepareSession(dataArray, levelName) {
         if (!wordDatabase[w]) {
             wordDatabase[w] = { correct: 0, wrong: 0, translation: item.trans, definition: item.def };
         } else {
-            wordDatabase[w].translation = item.trans;
-            wordDatabase[w].definition = item.def;
+            wordDatabase[w].translation = item.trans; wordDatabase[w].definition = item.def;
         }
         sessionWords.push(w);
     });
@@ -216,9 +269,11 @@ function loadNextWord() {
         targetWord = sessionQueue[0]; 
         wordInput.value = '';
         feedbackArea.innerHTML = '';
-        btnNext.style.display = 'none';
         
-        // Sengaja berikan sedikit jeda agar DOM browser stabil saat modal ditutup
+        // Membersihkan class animasi dari pengujian sebelumnya
+        wordInput.classList.remove('shake-animation', 'pulse-animation');
+        
+        btnNext.style.display = 'none';
         setTimeout(() => wordInput.focus(), 50); 
     } else {
         feedbackArea.innerHTML = '<div class="feedback-row" style="color:var(--correct); font-family:Inter; letter-spacing:0; font-size:1.5rem;">Sesi Selesai. Kinerja Sempurna.</div>';
@@ -230,15 +285,12 @@ function loadNextWord() {
 }
 
 btnClearData.addEventListener('click', () => {
-    if(confirm("Hanya menghapus riwayat statistik kesalahan. Level Kustom TIDAK akan terhapus. Lanjutkan?")) {
+    if(confirm("Menghapus riwayat statistik kesalahan. Lanjutkan?")) {
         localStorage.removeItem('spellingAdaptiveDB');
-        wordDatabase = {};
-        sessionQueue = [];
+        wordDatabase = {}; sessionQueue = [];
         fileStatus.textContent = "Statistik direset. Pilih level di pengaturan.";
-        wordInput.disabled = true;
-        btnSubmit.disabled = true;
-        feedbackArea.innerHTML = '';
-        btnNext.style.display = 'none';
+        wordInput.disabled = true; btnSubmit.disabled = true;
+        feedbackArea.innerHTML = ''; btnNext.style.display = 'none';
         closeSettings();
     }
 });
@@ -263,7 +315,16 @@ btnSubmit.addEventListener('click', () => {
     const targetLower = targetWord.toLowerCase();
     
     feedbackArea.innerHTML = '';
-    if (userInput === "") return; 
+    
+    // Trik DOM Reflow: Memaksa browser me-restart animasi CSS meskipun class dipanggil berulang
+    wordInput.classList.remove('shake-animation', 'pulse-animation');
+    void wordInput.offsetWidth; 
+    
+    if (userInput === "") {
+        wordInput.classList.add('shake-animation');
+        triggerVibration(false);
+        return; 
+    }
     
     wordInput.blur(); 
 
@@ -286,10 +347,20 @@ btnSubmit.addEventListener('click', () => {
     comparisonContainer.appendChild(userRow);
 
     if (userInput === targetLower) {
+        // EKSEKUSI UMPAN BALIK BENAR
+        wordInput.classList.add('pulse-animation');
+        playFeedbackTone(true);
+        triggerVibration(true);
+        
         wordDatabase[targetLower].correct++; 
         sessionQueue.shift(); 
         feedbackArea.appendChild(comparisonContainer);
     } else {
+        // EKSEKUSI UMPAN BALIK SALAH
+        wordInput.classList.add('shake-animation');
+        playFeedbackTone(false);
+        triggerVibration(false);
+        
         wordDatabase[targetLower].wrong++; 
         const failedWord = sessionQueue.shift();
         sessionQueue.push(failedWord);
