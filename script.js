@@ -12,6 +12,7 @@ const btnNext = document.getElementById('btn-next');
 const wordInput = document.getElementById('word-input');
 const feedbackArea = document.getElementById('feedback-area');
 const sessionStats = document.getElementById('session-stats');
+const fileStatus = document.getElementById('file-status');
 const progressBar = document.getElementById('progress-bar');
 const idleText = document.getElementById('idle-text');
 
@@ -42,7 +43,7 @@ function triggerVibration(isCorrect) {
     if (isCorrect) navigator.vibrate(15); else navigator.vibrate([40, 50, 40]); 
 }
 
-// Modal Settings
+// Settings Modal
 const settingsModal = document.getElementById('settings-modal');
 document.getElementById('btn-settings-toggle').addEventListener('click', () => settingsModal.classList.remove('hidden'));
 document.getElementById('btn-close-settings').addEventListener('click', () => { settingsModal.classList.add('hidden'); if(!wordInput.classList.contains('hidden')) wordInput.focus(); });
@@ -51,27 +52,16 @@ window.addEventListener('click', (e) => { if (e.target === settingsModal) settin
 const btnToggleSound = document.getElementById('toggle-sound');
 const btnToggleVibrate = document.getElementById('toggle-vibrate');
 function updatePrefs() {
-    btnToggleSound.textContent = soundEnabled ? 'suara: aktif' : 'suara: mati';
-    btnToggleSound.classList.toggle('active', soundEnabled);
-    btnToggleVibrate.textContent = vibrationEnabled ? 'getar: aktif' : 'getar: mati';
-    btnToggleVibrate.classList.toggle('active', vibrationEnabled);
+    btnToggleSound.textContent = soundEnabled ? 'suara: aktif' : 'suara: mati'; btnToggleSound.classList.toggle('active', soundEnabled);
+    btnToggleVibrate.textContent = vibrationEnabled ? 'getar: aktif' : 'getar: mati'; btnToggleVibrate.classList.toggle('active', vibrationEnabled);
 }
 updatePrefs();
 btnToggleSound.addEventListener('click', () => { soundEnabled = !soundEnabled; localStorage.setItem('spellingSound', soundEnabled); updatePrefs(); if(soundEnabled) initAudio(); });
 btnToggleVibrate.addEventListener('click', () => { vibrationEnabled = !vibrationEnabled; localStorage.setItem('spellingVibrate', vibrationEnabled); updatePrefs(); if(vibrationEnabled) triggerVibration(true); });
 
-// Database Admin
-document.getElementById('btn-reset-weak').addEventListener('click', () => {
-    Object.keys(wordDatabase).forEach(w => wordDatabase[w].wrongCount = 0);
-    localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase)); alert("data kata sulit dibersihkan.");
-});
-document.getElementById('btn-reset-star').addEventListener('click', () => {
-    Object.keys(wordDatabase).forEach(w => wordDatabase[w].isStarred = false);
-    localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase)); alert("data bintang dibersihkan.");
-});
-document.getElementById('btn-clear-data').addEventListener('click', () => {
-    if(confirm("Format seluruh database analitik?")) { localStorage.removeItem('spellingAdaptiveDB'); location.reload(); }
-});
+document.getElementById('btn-reset-weak').addEventListener('click', () => { Object.keys(wordDatabase).forEach(w => wordDatabase[w].wrongCount = 0); localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase)); alert("Data Kata Sulit direset."); });
+document.getElementById('btn-reset-star').addEventListener('click', () => { Object.keys(wordDatabase).forEach(w => wordDatabase[w].isStarred = false); localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase)); alert("Data Bintang direset."); });
+document.getElementById('btn-clear-data').addEventListener('click', () => { if(confirm("Format riwayat analitik?")) { localStorage.removeItem('spellingAdaptiveDB'); location.reload(); }});
 
 // Custom Builder
 const bName = document.getElementById('builder-level-name'), bWord = document.getElementById('builder-word'), bTrans = document.getElementById('builder-trans'), bDef = document.getElementById('builder-def'), bList = document.getElementById('builder-word-list'), bSave = document.getElementById('btn-save-level');
@@ -88,63 +78,124 @@ bSave.addEventListener('click', () => {
     tempBuilderWords = []; bList.innerHTML = ''; bName.value = ''; bSave.style.display = 'none'; alert(`Tersimpan: ${n}`);
 });
 
-// -- LOGIKA CONFIG BAR (MONKEYTYPE STYLE) --
+// -- LOGIKA NAVIGASI DAN TARGET SESI --
 let activeCategory = "";
-const catBtns = document.querySelectorAll('.cat-btn');
-const specBtns = document.querySelectorAll('.spec-btn');
-const subBtns = document.querySelectorAll('.sub-btn');
-const subGroup = document.getElementById('sublevel-group');
-const subSep = document.getElementById('sublevel-sep');
+let targetLimit = 10; 
 
-function clearAllActive() {
-    document.querySelectorAll('.config-btn').forEach(b => b.classList.remove('active'));
-}
+const catBtns = document.querySelectorAll('.cat-btn');
+const targetBtns = document.querySelectorAll('.target-btn');
+const btnCustomTarget = document.getElementById('btn-custom-target');
+const inputCustomTarget = document.getElementById('input-custom-target');
 
 catBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-        clearAllActive(); this.classList.add('active');
+        catBtns.forEach(b => b.classList.remove('active')); this.classList.add('active');
         activeCategory = this.getAttribute('data-val');
-        subGroup.classList.remove('hidden'); subSep.classList.remove('hidden');
+        initSession();
     });
 });
 
-specBtns.forEach(btn => {
+targetBtns.forEach(btn => {
+    if(btn.id === 'btn-custom-target') return; 
     btn.addEventListener('click', function() {
-        clearAllActive(); this.classList.add('active');
-        subGroup.classList.add('hidden'); subSep.classList.add('hidden');
-        
-        const type = this.getAttribute('data-val');
-        let data = []; let title = "";
-        
-        if (type === 'WEAK') {
-            title = "⚡ sulit";
-            data = Object.keys(wordDatabase).filter(w => (wordDatabase[w].wrongCount || 0) > 0).sort((a, b) => wordDatabase[b].wrongCount - wordDatabase[a].wrongCount).map(w => ({ word: w, trans: wordDatabase[w].translation, def: wordDatabase[w].definition }));
-        } else if (type === 'STAR') {
-            title = "★ bintang";
-            data = Object.keys(wordDatabase).filter(w => wordDatabase[w].isStarred).map(w => ({ word: w, trans: wordDatabase[w].translation, def: wordDatabase[w].definition }));
-        } else if (type === 'CUSTOM') {
-            title = "kustom campuran";
-            // Combine all custom levels for seamless play
-            Object.values(customLevelsDB).forEach(arr => data = data.concat(arr));
-        }
-        
-        if (data.length === 0) return alert("Pangkalan data kosong untuk kategori ini.");
-        prepareSession(data, title);
+        targetBtns.forEach(b => b.classList.remove('active')); this.classList.add('active');
+        btnCustomTarget.textContent = "kustom"; // reset custom label if other clicked
+        targetLimit = this.getAttribute('data-val') === 'ALL' ? 'ALL' : parseInt(this.getAttribute('data-val'));
+        initSession();
     });
 });
 
-subBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-        subBtns.forEach(b => b.classList.remove('active')); this.classList.add('active');
-        const sub = this.getAttribute('data-val');
-        const levelName = `${activeCategory} - Level ${sub}`;
-        const data = typeof preloadedLevels !== 'undefined' ? (preloadedLevels[levelName] || []) : [];
-        if (data.length === 0) return alert("Data tidak ditemukan.");
-        prepareSession(data, levelName);
-    });
+// Custom Target Input Logic
+btnCustomTarget.addEventListener('click', () => {
+    btnCustomTarget.classList.add('hidden');
+    inputCustomTarget.classList.remove('hidden');
+    inputCustomTarget.focus();
 });
 
-// -- SESSION MANAGEMENT --
+inputCustomTarget.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') { e.preventDefault(); applyCustomTarget(); }
+});
+inputCustomTarget.addEventListener('blur', applyCustomTarget);
+
+function applyCustomTarget() {
+    if(inputCustomTarget.classList.contains('hidden')) return;
+    let val = parseInt(inputCustomTarget.value);
+    inputCustomTarget.classList.add('hidden');
+    btnCustomTarget.classList.remove('hidden');
+    
+    if(val > 0) {
+        targetLimit = val;
+        targetBtns.forEach(b => b.classList.remove('active'));
+        btnCustomTarget.classList.add('active');
+        btnCustomTarget.textContent = val; 
+        initSession();
+    } else {
+        inputCustomTarget.value = '';
+    }
+}
+
+// Algoritma Pengacakan Fisher-Yates
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function initSession() {
+    if(!activeCategory) return;
+    let rawData = [];
+    let title = "";
+
+    // 1. Ekstraksi Data Kategori
+    if(activeCategory.match(/^[A-C][1-2]$/)) {
+        title = `CEFR ${activeCategory}`;
+        rawData = typeof preloadedLevels !== 'undefined' ? (preloadedLevels[activeCategory] || []) : [];
+    } else if (activeCategory === "WEAK") {
+        title = "⚡ Sulit";
+        let weakWords = Object.keys(wordDatabase).filter(w => (wordDatabase[w].wrongCount || 0) > 0).sort((a,b) => wordDatabase[b].wrongCount - wordDatabase[a].wrongCount);
+        rawData = weakWords.map(w => ({word: w, trans: wordDatabase[w].translation, def: wordDatabase[w].definition}));
+    } else if (activeCategory === "STAR") {
+        title = "★ Bintang";
+        let starWords = Object.keys(wordDatabase).filter(w => wordDatabase[w].isStarred);
+        rawData = starWords.map(w => ({word: w, trans: wordDatabase[w].translation, def: wordDatabase[w].definition}));
+    } else if (activeCategory === "CUSTOM") {
+        title = "Kustom";
+        Object.values(customLevelsDB).forEach(arr => rawData = rawData.concat(arr));
+    }
+
+    const totalAvailable = rawData.length;
+    fileStatus.textContent = `Kategori: ${title} • ${totalAvailable} kata tersedia`;
+
+    if(totalAvailable === 0) {
+        wordInput.classList.add('hidden'); btnListen.classList.add('hidden'); sessionStats.classList.add('hidden');
+        feedbackArea.innerHTML = `<div class="idle-text" style="color:var(--incorrect);">Data kosong. Tambahkan kata terlebih dahulu.</div>`;
+        return;
+    }
+
+    // 2. Proteksi Limit Sesi
+    let limit = totalAvailable;
+    if(targetLimit !== "ALL") {
+        limit = Math.min(targetLimit, totalAvailable);
+    }
+
+    // 3. Logika Slicing & Shuffle 
+    let sessionData = [];
+    if (activeCategory === "WEAK") {
+        // Ambil N kata yang paling sering salah (karena sudah di-sort), BARU diacak agar urutan tesnya tidak ditebak
+        sessionData = rawData.slice(0, limit);
+        sessionData = shuffleArray(sessionData);
+    } else {
+        // Acak seluruh bank kata terlebih dahulu, BARU ambil N kata
+        let shuffled = shuffleArray([...rawData]);
+        sessionData = shuffled.slice(0, limit);
+    }
+
+    prepareSession(sessionData);
+}
+
+// -- EXECUTION & UI UPDATE --
 function updateStatsUI() {
     const acc = sessionAttempts === 0 ? 100 : Math.round((sessionCorrectAttempts / sessionAttempts) * 100);
     const prog = sessionTotal === 0 ? 0 : (sessionCompleted / sessionTotal) * 100;
@@ -152,7 +203,7 @@ function updateStatsUI() {
     progressBar.style.width = `${prog}%`;
 }
 
-function prepareSession(dataArray, title) {
+function prepareSession(dataArray) {
     let sessionWords = [];
     dataArray.forEach(item => {
         const w = item.word.toLowerCase();
@@ -161,8 +212,9 @@ function prepareSession(dataArray, title) {
         sessionWords.push(w);
     });
     localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase));
-    sessionQueue = sessionWords.sort((a, b) => (wordDatabase[b].wrong - wordDatabase[b].correct) - (wordDatabase[a].wrong - wordDatabase[a].correct));
     
+    // Kata-kata sudah di-shuffle di tahap initSession, langsung masukkan ke Queue
+    sessionQueue = sessionWords;
     sessionTotal = sessionQueue.length; sessionCompleted = 0; sessionAttempts = 0; sessionCorrectAttempts = 0;
     
     idleText.classList.add('hidden');
@@ -182,14 +234,16 @@ function loadNextWord() {
         btnNext.classList.add('hidden'); btnSubmit.classList.remove('hidden');
         setTimeout(() => wordInput.focus(), 50); 
     } else {
-        feedbackArea.innerHTML = '<div class="feedback-row" style="color:var(--text-main); font-size:1.2rem;">sesi tuntas.</div>';
+        feedbackArea.innerHTML = '<div class="feedback-row" style="color:var(--correct); font-size:1.5rem; letter-spacing:0;">Sesi tuntas. Kinerja sempurna.</div>';
         wordInput.classList.add('hidden'); btnSubmit.classList.add('hidden'); btnNext.classList.add('hidden'); btnListen.classList.add('hidden');
     }
 }
 
 // Global Keyboard Control
 window.addEventListener('keydown', function (e) {
-    if (document.activeElement.id && document.activeElement.id.includes('builder')) return; 
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.id.includes('builder') || activeEl.id === 'input-custom-target')) return; 
+    
     if (e.key === 'Tab' || e.keyCode === 9) {
         e.preventDefault(); e.stopPropagation();
         if (targetWord !== "" && !wordInput.classList.contains('hidden')) btnListen.click();
@@ -246,7 +300,7 @@ btnSubmit.addEventListener('click', () => {
     
     const currentWordData = wordDatabase[targetLower];
     const semanticBox = document.createElement('div'); semanticBox.classList.add('semantic-box');
-    semanticBox.innerHTML = `<div><span class="trans-text">${currentWordData.translation}</span><span style="font-size:0.8rem;">${currentWordData.definition}</span></div><button class="star-btn ${currentWordData.isStarred ? 'starred' : ''}" id="toggle-star">${currentWordData.isStarred ? '★' : '☆'}</button>`;
+    semanticBox.innerHTML = `<div><span class="trans-text">${currentWordData.translation}</span><br><span style="font-size:0.8rem;">${currentWordData.definition}</span></div><button class="star-btn ${currentWordData.isStarred ? 'starred' : ''}" id="toggle-star">${currentWordData.isStarred ? '★' : '☆'}</button>`;
     feedbackArea.appendChild(semanticBox);
     
     document.getElementById('toggle-star').addEventListener('click', function() {
