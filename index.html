@@ -3,52 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spelling Test Game</title>
+    <title>Focused Typist - Spelling</title>
+    <!-- Impor Font Modern Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#323437">
 </head>
 <body>
-    <div class="container">
-        <h1>Spelling Test Game</h1>
-        
-        <!-- AREA 1: Kontrol Game Utama -->
-        <div class="file-control">
-            <select id="level-selector" class="dropdown-menu">
-                <option value="">-- Pilih Level Game --</option>
-            </select>
-            <button id="btn-load-level" class="primary-btn" style="margin-bottom: 15px; background-color:#28a745;">Mainkan Level</button>
-            <div id="file-status">Pilih level di atas untuk memulai.</div>
-            <button id="btn-clear-data">Hapus Riwayat Statistik Kesalahan</button>
-        </div>
+    <!-- NAVIGASI & HEADER -->
+    <header>
+        <div class="logo">spelling.<span>type</span></div>
+        <button id="btn-settings-toggle" class="icon-btn" title="Pengaturan Level">
+            <!-- Ikon SVG Roda Gigi -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+    </header>
 
-        <!-- AREA 2: Pembuat Level Kustom (Level Builder) -->
-        <div class="file-control custom-builder">
-            <h3 style="margin-top:0; font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">+ Buat Level Kustom</h3>
-            <input type="text" id="builder-level-name" placeholder="Nama Level (misal: Geoteknik)" autocomplete="off">
-            
-            <div class="builder-inputs">
-                <input type="text" id="builder-word" placeholder="Kata (Inggris)" autocomplete="off">
-                <input type="text" id="builder-trans" placeholder="Terjemahan" autocomplete="off">
-                <input type="text" id="builder-def" placeholder="Definisi (Opsional)" autocomplete="off">
+    <!-- KOTAK MODAL PENGATURAN (Tersembunyi) -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Konfigurasi Sesi</h2>
+                <button id="btn-close-settings" class="close-btn">&times;</button>
             </div>
             
-            <button id="btn-add-word" style="background-color: #17a2b8; color: white;">Tambah ke Antrean</button>
-            <ul id="builder-word-list"></ul>
-            <button id="btn-save-level" style="background-color: #ffc107; color: black; display: none;">Simpan Level Baru</button>
-        </div>
-        
-        <!-- AREA 3: Antarmuka Pengujian -->
-        <button id="btn-listen" class="primary-btn">Dengarkan Kata</button>
-        
-        <div class="input-section">
-            <input type="text" id="word-input" placeholder="Ketik kata... (Tekan Enter)" autocomplete="off">
-            <button id="btn-submit">Periksa</button>
-        </div>
+            <div class="control-group">
+                <label>Pilih Level Eksekusi:</label>
+                <select id="level-selector" class="dropdown-menu">
+                    <option value="">-- Pilih Level Game --</option>
+                </select>
+                <button id="btn-load-level" class="action-btn outline">Muat Sesi ke Memori</button>
+                <button id="btn-clear-data" class="danger-btn">Hapus Riwayat Statistik (Reset)</button>
+            </div>
 
-        <div id="feedback-area"></div>
-        <button id="btn-next" style="display: none;">Kata Selanjutnya &raquo; (Tekan Enter)</button>
+            <div class="control-group custom-builder">
+                <h3>Buat Level Kustom Baru</h3>
+                <input type="text" id="builder-level-name" placeholder="Nama Level..." autocomplete="off">
+                <div class="builder-inputs">
+                    <input type="text" id="builder-word" placeholder="Kata (Inggris)" autocomplete="off">
+                    <input type="text" id="builder-trans" placeholder="Terjemahan" autocomplete="off">
+                    <input type="text" id="builder-def" placeholder="Definisi (Opsional)" autocomplete="off">
+                </div>
+                <button id="btn-add-word" class="action-btn secondary">+ Tambah Kata ke Daftar</button>
+                <ul id="builder-word-list"></ul>
+                <button id="btn-save-level" class="action-btn accent" style="display: none;">Simpan Level ke Pangkalan Data</button>
+            </div>
+        </div>
     </div>
 
-    <!-- PENGHUBUNG LOGIKA JAVASCRIPT -->
+    <!-- AREA PENGETIKAN UTAMA -->
+    <main class="typing-container">
+        <!-- Status Bar -->
+        <div id="file-status" class="status-bar">Klik ikon roda gigi (⚙️) di atas untuk memilih level.</div>
+        
+        <!-- Pemutar Audio -->
+        <button id="btn-listen" class="audio-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            Dengarkan Kata <span class="shortcut">Tab</span>
+        </button>
+        
+        <!-- Input Fokus -->
+        <div class="input-section">
+            <input type="text" id="word-input" placeholder="ketik_di_sini..." autocomplete="off" spellcheck="false">
+        </div>
+
+        <!-- Umpan Balik Evaluasi -->
+        <div id="feedback-area"></div>
+        
+        <!-- Tombol Aksi Tersembunyi (Dikontrol oleh JS) -->
+        <div class="action-row" style="display: none;">
+            <button id="btn-submit">Periksa <span class="shortcut">Enter</span></button>
+            <button id="btn-next" style="display: none;">Selanjutnya <span class="shortcut">Enter</span></button>
+        </div>
+    </main>
+
     <script src="levels.js"></script>
     <script src="script.js"></script>
 </body>
