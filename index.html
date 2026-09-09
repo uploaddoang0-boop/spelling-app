@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Test Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Spelling Test Game</h1>
+        
+        <!-- Area Dropdown Level & Impor Kustom -->
+        <div class="file-control">
+            <select id="level-selector" class="dropdown-menu">
+                <option value="">-- Pilih Level Game --</option>
+                <!-- Opsi level akan dimuat otomatis oleh file levels.js -->
+            </select>
+            <button id="btn-load-level" class="primary-btn" style="margin-bottom: 15px; background-color:#28a745;">Mainkan Level</button>
+            
+            <hr style="border:0; border-top:1px solid #ccc; margin: 15px 0;">
+            
+            <label style="font-size:12px; color:#555;">Atau impor Level Kustom (.txt):</label>
+            <input type="file" id="file-input" accept=".txt">
+            
+            <div id="file-status" style="margin-top: 10px;">Pilih level di atas untuk memulai.</div>
+            <button id="btn-clear-data">Hapus Riwayat Statistik Kesalahan</button>
+        </div>
+        
+        <!-- Tombol untuk melafalkan kata -->
+        <button id="btn-listen" class="primary-btn">Dengarkan Kata</button>
+        
+        <!-- Area input untuk pengguna mengetik -->
+        <div class="input-section">
+            <input type="text" id="word-input" placeholder="Ketik kata yang Anda dengar..." autocomplete="off">
+            <button id="btn-submit">Periksa</button>
+        </div>
+
+        <!-- Area untuk menampilkan hasil atau pesan kesalahan -->
+        <div id="feedback-area"></div>
+        
+        <!-- Tombol Navigasi (Disembunyikan di awal sesi) -->
+        <button id="btn-next" style="display: none;">Kata Selanjutnya &raquo;</button>
+    </div>
+
+    <!-- PENGHUBUNG LOGIKA JAVASCRIPT -->
+    <!-- URUTAN INI SANGAT KRUSIAL: Pangkalan data level harus dimuat sebelum logika inti -->
+    <script src="levels.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
