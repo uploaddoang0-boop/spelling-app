@@ -6,6 +6,10 @@ let vibrationEnabled = JSON.parse(localStorage.getItem('spellingVibrate')) ?? tr
 let sessionQueue = []; let targetWord = ""; let tempBuilderWords = []; 
 let sessionTotal = 0; let sessionCompleted = 0; let sessionAttempts = 0; let sessionCorrectAttempts = 0;
 
+// Variabel Global untuk Kalkulasi Penguasaan (Mastery)
+let currentRawData = [];
+let currentCategoryTitle = "";
+
 const btnListen = document.getElementById('btn-listen');
 const btnSubmit = document.getElementById('btn-submit');
 const btnNext = document.getElementById('btn-next');
@@ -59,6 +63,14 @@ updatePrefs();
 btnToggleSound.addEventListener('click', () => { soundEnabled = !soundEnabled; localStorage.setItem('spellingSound', soundEnabled); updatePrefs(); if(soundEnabled) initAudio(); });
 btnToggleVibrate.addEventListener('click', () => { vibrationEnabled = !vibrationEnabled; localStorage.setItem('spellingVibrate', vibrationEnabled); updatePrefs(); if(vibrationEnabled) triggerVibration(true); });
 
+// -- ADMIN DATABASE (TERMASUK RESET PENGUASAAN) --
+document.getElementById('btn-reset-mastery').addEventListener('click', () => { 
+    if(confirm("Ulangi progres penguasaan dari 0%? (Kata yang sudah benar akan muncul kembali)")) {
+        Object.keys(wordDatabase).forEach(w => { wordDatabase[w].correct = 0; wordDatabase[w].wrong = 0; });
+        localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase)); alert("Progres penguasaan berhasil di-reset ke 0%.");
+        if(activeCategory) initSession(); // Refresh antarmuka
+    }
+});
 document.getElementById('btn-reset-weak').addEventListener('click', () => { Object.keys(wordDatabase).forEach(w => wordDatabase[w].wrongCount = 0); localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase)); alert("Data Kata Sulit direset."); });
 document.getElementById('btn-reset-star').addEventListener('click', () => { Object.keys(wordDatabase).forEach(w => wordDatabase[w].isStarred = false); localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase)); alert("Data Bintang direset."); });
 document.getElementById('btn-clear-data').addEventListener('click', () => { if(confirm("Format riwayat analitik?")) { localStorage.removeItem('spellingAdaptiveDB'); location.reload(); }});
@@ -99,7 +111,7 @@ targetBtns.forEach(btn => {
     if(btn.id === 'btn-custom-target') return; 
     btn.addEventListener('click', function() {
         targetBtns.forEach(b => b.classList.remove('active')); this.classList.add('active');
-        btnCustomTarget.textContent = "kustom"; // reset custom label if other clicked
+        btnCustomTarget.textContent = "kustom"; 
         targetLimit = this.getAttribute('data-val') === 'ALL' ? 'ALL' : parseInt(this.getAttribute('data-val'));
         initSession();
     });
@@ -112,9 +124,7 @@ btnCustomTarget.addEventListener('click', () => {
     inputCustomTarget.focus();
 });
 
-inputCustomTarget.addEventListener('keydown', (e) => {
-    if(e.key === 'Enter') { e.preventDefault(); applyCustomTarget(); }
-});
+inputCustomTarget.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); applyCustomTarget(); } });
 inputCustomTarget.addEventListener('blur', applyCustomTarget);
 
 function applyCustomTarget() {
@@ -143,12 +153,31 @@ function shuffleArray(array) {
     return array;
 }
 
+// -- FUNGSI REAL-TIME: Kalkulasi Persentase Penguasaan --
+function updateMasteryUI() {
+    if(!currentRawData.length) return;
+    let masteredCount = 0;
+    
+    currentRawData.forEach(item => {
+        const rec = wordDatabase[item.word.toLowerCase()];
+        // SYARAT DIKUASAI: Benar lebih besar dari Salah. (Jika salah 2, butuh benar 3)
+        if(rec && rec.correct > rec.wrong) masteredCount++;
+    });
+    
+    const pct = Math.round((masteredCount / currentRawData.length) * 100);
+    let sHtml = `kategori: ${currentCategoryTitle} &nbsp;|&nbsp; dikuasai: <span style="color:var(--accent);">${pct}%</span> (${masteredCount}/${currentRawData.length})`;
+    
+    if(masteredCount === currentRawData.length) {
+        sHtml += ` &nbsp;<span style="color:var(--correct); font-weight:bold;">[ TUNTAS ]</span>`;
+    }
+    fileStatus.innerHTML = sHtml;
+}
+
 function initSession() {
     if(!activeCategory) return;
     let rawData = [];
     let title = "";
 
-    // 1. Ekstraksi Data Kategori
     if(activeCategory.match(/^[A-C][1-2]$/)) {
         title = `CEFR ${activeCategory}`;
         rawData = typeof preloadedLevels !== 'undefined' ? (preloadedLevels[activeCategory] || []) : [];
@@ -165,31 +194,38 @@ function initSession() {
         Object.values(customLevelsDB).forEach(arr => rawData = rawData.concat(arr));
     }
 
-    const totalAvailable = rawData.length;
-    fileStatus.textContent = `Kategori: ${title} • ${totalAvailable} kata tersedia`;
+    currentRawData = rawData;
+    currentCategoryTitle = title;
+    updateMasteryUI(); // Tampilkan persentase awal
 
-    if(totalAvailable === 0) {
+    if(rawData.length === 0) {
         wordInput.classList.add('hidden'); btnListen.classList.add('hidden'); sessionStats.classList.add('hidden');
-        feedbackArea.innerHTML = `<div class="idle-text" style="color:var(--incorrect);">Data kosong. Tambahkan kata terlebih dahulu.</div>`;
+        feedbackArea.innerHTML = `<div class="idle-text" style="color:var(--incorrect);">Data kosong.</div>`;
         return;
     }
 
-    // 2. Proteksi Limit Sesi
-    let limit = totalAvailable;
-    if(targetLimit !== "ALL") {
-        limit = Math.min(targetLimit, totalAvailable);
+    // FILTER PROGRESIF: Pisahkan kata yang belum dikuasai
+    let learningPool = [];
+    rawData.forEach(item => {
+        const rec = wordDatabase[item.word.toLowerCase()];
+        if (!rec || rec.correct <= rec.wrong) {
+            learningPool.push(item);
+        }
+    });
+
+    // Jika semua kata sudah dikuasai (100%), masukkan kembali semuanya untuk mode "Review"
+    if(learningPool.length === 0) {
+        learningPool = [...rawData];
     }
 
-    // 3. Logika Slicing & Shuffle 
+    let limit = targetLimit === "ALL" ? learningPool.length : Math.min(targetLimit, learningPool.length);
+
+    // Acak pool belajar, lalu ambil sejumlah limit target
     let sessionData = [];
     if (activeCategory === "WEAK") {
-        // Ambil N kata yang paling sering salah (karena sudah di-sort), BARU diacak agar urutan tesnya tidak ditebak
-        sessionData = rawData.slice(0, limit);
-        sessionData = shuffleArray(sessionData);
+        sessionData = shuffleArray(learningPool.slice(0, limit)); // Potong dulu (prioritas tersulit), baru acak
     } else {
-        // Acak seluruh bank kata terlebih dahulu, BARU ambil N kata
-        let shuffled = shuffleArray([...rawData]);
-        sessionData = shuffled.slice(0, limit);
+        sessionData = shuffleArray([...learningPool]).slice(0, limit); // Acak dulu semua, baru potong
     }
 
     prepareSession(sessionData);
@@ -199,7 +235,7 @@ function initSession() {
 function updateStatsUI() {
     const acc = sessionAttempts === 0 ? 100 : Math.round((sessionCorrectAttempts / sessionAttempts) * 100);
     const prog = sessionTotal === 0 ? 0 : (sessionCompleted / sessionTotal) * 100;
-    sessionStats.textContent = `selesai: ${sessionCompleted}/${sessionTotal}  |  akurasi: ${acc}%`;
+    sessionStats.textContent = `sesi berjalan: ${sessionCompleted}/${sessionTotal}  |  akurasi instan: ${acc}%`;
     progressBar.style.width = `${prog}%`;
 }
 
@@ -213,7 +249,6 @@ function prepareSession(dataArray) {
     });
     localStorage.setItem('spellingAdaptiveDB', JSON.stringify(wordDatabase));
     
-    // Kata-kata sudah di-shuffle di tahap initSession, langsung masukkan ke Queue
     sessionQueue = sessionWords;
     sessionTotal = sessionQueue.length; sessionCompleted = 0; sessionAttempts = 0; sessionCorrectAttempts = 0;
     
@@ -234,8 +269,9 @@ function loadNextWord() {
         btnNext.classList.add('hidden'); btnSubmit.classList.remove('hidden');
         setTimeout(() => wordInput.focus(), 50); 
     } else {
-        feedbackArea.innerHTML = '<div class="feedback-row" style="color:var(--correct); font-size:1.5rem; letter-spacing:0;">Sesi tuntas. Kinerja sempurna.</div>';
+        feedbackArea.innerHTML = '<div class="feedback-row" style="color:var(--correct); font-size:1.5rem; letter-spacing:0;">Sesi tuntas.</div>';
         wordInput.classList.add('hidden'); btnSubmit.classList.add('hidden'); btnNext.classList.add('hidden'); btnListen.classList.add('hidden');
+        updateMasteryUI(); // Update persentase global setelah sesi selesai
     }
 }
 
@@ -297,6 +333,7 @@ btnSubmit.addEventListener('click', () => {
     }
     
     updateStatsUI();
+    updateMasteryUI(); // Update persentase penguasaan secara live
     
     const currentWordData = wordDatabase[targetLower];
     const semanticBox = document.createElement('div'); semanticBox.classList.add('semantic-box');
