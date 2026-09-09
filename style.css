@@ -318,3 +318,50 @@ input[type="text"]:focus, .dropdown-menu:focus {
     color: var(--text-muted);
 }
 #builder-word-list li { margin-bottom: 5px; }
+
+/* --- TAMBAHAN: UI Toggle Umpan Balik --- */
+.toggle-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+.toggle-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--text-muted);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+.toggle-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(226, 183, 20, 0.1);
+}
+
+/* --- TAMBAHAN: Mikro-Animasi Umpan Balik --- */
+/* 1. Animasi Salah: Shake Horizontal Ringan */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+.shake-animation {
+    animation: shake 0.2s ease-in-out;
+    color: var(--incorrect) !important;
+}
+
+/* 2. Animasi Benar: Pulse Mint Halus */
+@keyframes pulseCorrect {
+    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(74, 222, 128, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+.pulse-animation {
+    animation: pulseCorrect 0.4s ease-out;
+    color: var(--correct) !important;
+}
