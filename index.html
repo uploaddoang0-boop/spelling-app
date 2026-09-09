@@ -12,108 +12,94 @@
     <meta name="theme-color" content="#323437">
 </head>
 <body>
-    <!-- Indikator Progres Top Bar -->
-    <div class="progress-container">
-        <div id="progress-bar"></div>
-    </div>
+    <div class="progress-container"><div id="progress-bar"></div></div>
 
-    <!-- NAVIGASI & HEADER -->
     <header>
         <div class="logo">spelling.<span>type</span></div>
-        <button id="btn-settings-toggle" class="icon-btn" title="Pengaturan Level">
+        <button id="btn-settings-toggle" class="icon-btn" title="Pengaturan">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </button>
     </header>
 
-    <!-- KOTAK MODAL PENGATURAN -->
+    <!-- Modal Pengaturan Bersih -->
     <div id="settings-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Konfigurasi Sesi</h2>
+                <h2>Pengaturan Sistem</h2>
                 <button id="btn-close-settings" class="close-btn">&times;</button>
             </div>
             
             <div class="control-group">
                 <div class="toggle-row">
-                    <button id="toggle-sound" class="toggle-btn">Suara: ON</button>
-                    <button id="toggle-vibrate" class="toggle-btn">Getar: ON</button>
+                    <button id="toggle-sound" class="toggle-btn">suara</button>
+                    <button id="toggle-vibrate" class="toggle-btn">getar</button>
                 </div>
-            </div>
-
-            <!-- TABS PEMILIHAN LEVEL (MENGGANTIKAN DROPDOWN) -->
-            <div class="control-group">
-                <label style="margin-bottom: 8px;">Kategori Modul:</label>
-                <div id="category-tabs" class="tabs-row">
-                    <button class="tab-btn cat-tab" data-val="A1">A1</button>
-                    <button class="tab-btn cat-tab" data-val="A2">A2</button>
-                    <button class="tab-btn cat-tab" data-val="B1">B1</button>
-                    <button class="tab-btn cat-tab" data-val="B2">B2</button>
-                    <button class="tab-btn cat-tab" data-val="C1">C1</button>
-                    <button class="tab-btn cat-tab" data-val="C2">C2</button>
-                    <button class="tab-btn cat-tab highlight-tab" data-val="WEAK">⚡ Sulit</button>
-                    <button class="tab-btn cat-tab highlight-tab" data-val="STAR">⭐ Tersimpan</button>
-                    <button class="tab-btn cat-tab" data-val="CUSTOM">Kustom</button>
-                </div>
-
-                <div id="sublevel-container" class="hidden" style="margin-top: 15px;">
-                    <label style="margin-bottom: 8px;">Sub-Level:</label>
-                    <div id="sublevel-tabs" class="tabs-row">
-                        <!-- Sub-level dimuat oleh JS -->
-                    </div>
-                </div>
-
-                <button id="btn-load-level" class="action-btn outline" style="margin-top: 15px;">Muat Sesi ke Memori</button>
             </div>
 
             <div class="control-group custom-builder">
-                <h3>+ Buat Level Kustom Baru</h3>
-                <input type="text" id="builder-level-name" placeholder="Nama Level..." autocomplete="off">
+                <h3>+ input kata kustom</h3>
+                <input type="text" id="builder-level-name" placeholder="nama daftar (cth: geoteknik)" autocomplete="off">
                 <div class="builder-inputs">
-                    <input type="text" id="builder-word" placeholder="Kata (Inggris)" autocomplete="off">
-                    <input type="text" id="builder-trans" placeholder="Terjemahan" autocomplete="off">
-                    <input type="text" id="builder-def" placeholder="Definisi (Opsional)" autocomplete="off">
+                    <input type="text" id="builder-word" placeholder="kata (inggris)" autocomplete="off">
+                    <input type="text" id="builder-trans" placeholder="terjemahan" autocomplete="off">
+                    <input type="text" id="builder-def" placeholder="definisi (opsional)" autocomplete="off">
                 </div>
-                <button id="btn-add-word" class="action-btn secondary">+ Tambah Kata ke Daftar</button>
+                <button id="btn-add-word" class="action-btn secondary">+ simpan kata</button>
                 <ul id="builder-word-list"></ul>
-                <button id="btn-save-level" class="action-btn accent" style="display: none;">Simpan Level ke Pangkalan Data</button>
+                <button id="btn-save-level" class="action-btn accent" style="display: none;">patenkan pangkalan data</button>
             </div>
 
             <div class="control-group">
-                <h3>Manajemen Pangkalan Data</h3>
-                <div class="tabs-row" style="margin-bottom:10px;">
-                    <button id="btn-reset-weak" class="toggle-btn" style="color:var(--text-main);">Reset Kata Sulit</button>
-                    <button id="btn-reset-star" class="toggle-btn" style="color:var(--text-main);">Hapus Semua ⭐</button>
-                </div>
-                <button id="btn-clear-data" class="danger-btn">Hapus Seluruh Riwayat Kesalahan</button>
+                <button id="btn-reset-weak" class="toggle-btn mobile-wide" style="margin-bottom: 5px;">reset kata sulit</button>
+                <button id="btn-reset-star" class="toggle-btn mobile-wide" style="margin-bottom: 5px;">hapus semua bintang</button>
+                <button id="btn-clear-data" class="danger-btn">format seluruh riwayat</button>
             </div>
         </div>
     </div>
 
-    <!-- AREA PENGETIKAN UTAMA -->
     <main class="typing-container">
-        <!-- Status Bar Ringkas -->
-        <div id="session-stats" class="status-bar">Selesai: 0 / 0 &nbsp;|&nbsp; Akurasi: 0%</div>
-        <div id="file-status" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">Klik ikon roda gigi (⚙️) untuk memulai.</div>
+        <!-- Floating Config Bar (Monkeytype Style) -->
+        <div class="config-bar">
+            <div class="config-group">
+                <button class="config-btn cat-btn" data-val="A1">a1</button>
+                <button class="config-btn cat-btn" data-val="A2">a2</button>
+                <button class="config-btn cat-btn" data-val="B1">b1</button>
+                <button class="config-btn cat-btn" data-val="B2">b2</button>
+                <button class="config-btn cat-btn" data-val="C1">c1</button>
+                <button class="config-btn cat-btn" data-val="C2">c2</button>
+            </div>
+            <div class="config-sep"></div>
+            <div class="config-group">
+                <button class="config-btn spec-btn" data-val="WEAK">⚡ sulit</button>
+                <button class="config-btn spec-btn" data-val="STAR">★ bintang</button>
+                <button class="config-btn spec-btn" data-val="CUSTOM">kustom</button>
+            </div>
+            <div id="sublevel-sep" class="config-sep hidden"></div>
+            <div id="sublevel-group" class="config-group hidden">
+                <button class="config-btn sub-btn" data-val="1">1</button>
+                <button class="config-btn sub-btn" data-val="2">2</button>
+                <button class="config-btn sub-btn" data-val="3">3</button>
+            </div>
+        </div>
+
+        <div id="session-stats" class="status-bar hidden">selesai: 0/0 &nbsp;|&nbsp; akurasi: 0%</div>
         
-        <!-- Pemutar Audio Kapsul -->
-        <button id="btn-listen" class="audio-btn pill">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-            Dengarkan Kata <span class="shortcut">Tab</span>
+        <button id="btn-listen" class="audio-btn pill hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            dengarkan
         </button>
         
-        <!-- Input Fokus -->
         <div class="input-section">
-            <input type="text" id="word-input" placeholder="ketik_di_sini..." autocomplete="off" spellcheck="false">
+            <!-- Tampilan Default Sebelum Level Dipilih -->
+            <div id="idle-text" class="idle-text">pilih konfigurasi level di atas untuk memulai.</div>
+            <input type="text" id="word-input" class="hidden" autocomplete="off" spellcheck="false">
         </div>
         
-        <!-- Tombol Eksekusi Mobile-Friendly -->
-        <button id="btn-submit" class="action-btn outline mobile-wide" style="display: none; margin-bottom: 2rem;">Periksa <span class="shortcut">Enter</span></button>
+        <button id="btn-submit" class="action-btn mobile-wide hidden" style="margin-bottom: 2rem;">periksa</button>
 
-        <!-- Umpan Balik Evaluasi -->
         <div id="feedback-area"></div>
         
-        <!-- Tombol Lanjut (Lebar) -->
-        <button id="btn-next" class="action-btn mobile-wide accent-btn" style="display: none; margin-top: 15px;">Kata Selanjutnya &raquo; <span class="shortcut" style="color:black; border-color:black;">Enter</span></button>
+        <button id="btn-next" class="action-btn mobile-wide dark-btn hidden" style="margin-top: 15px;">kata selanjutnya &raquo;</button>
     </main>
 
     <script src="levels.js"></script>
