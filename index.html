@@ -30,10 +30,10 @@
             </div>
             
             <div class="control-group">
-                <button id="btn-reset-mastery" class="toggle-btn mobile-wide" style="margin-bottom: 5px; border-color: var(--accent); color: var(--accent);">reset progres (0%)</button>
-                <button id="btn-reset-weak" class="toggle-btn mobile-wide" style="margin-bottom: 5px;">reset kata sulit</button>
-                <button id="btn-reset-star" class="toggle-btn mobile-wide" style="margin-bottom: 5px;">hapus semua bintang</button>
-                <button id="btn-clear-data" class="danger-btn">format seluruh riwayat</button>
+                <div class="toggle-row">
+                    <button id="toggle-sound" class="toggle-btn">suara</button>
+                    <button id="toggle-vibrate" class="toggle-btn">getar</button>
+                </div>
             </div>
 
             <div class="control-group custom-builder">
@@ -49,7 +49,9 @@
                 <button id="btn-save-level" class="action-btn accent" style="display: none;">patenkan pangkalan data</button>
             </div>
 
+            <!-- BLOK ADMIN DATABASE -->
             <div class="control-group">
+                <button id="btn-reset-mastery" class="toggle-btn mobile-wide" style="margin-bottom: 5px; border-color: var(--accent); color: var(--accent);">reset progres (0%)</button>
                 <button id="btn-reset-weak" class="toggle-btn mobile-wide" style="margin-bottom: 5px;">reset kata sulit</button>
                 <button id="btn-reset-star" class="toggle-btn mobile-wide" style="margin-bottom: 5px;">hapus semua bintang</button>
                 <button id="btn-clear-data" class="danger-btn">format seluruh riwayat</button>
@@ -60,7 +62,6 @@
     <main class="typing-container">
         <!-- Floating Config Bar -->
         <div class="config-bar">
-            <!-- Grup 1: Kategori -->
             <div class="config-group">
                 <button class="config-btn cat-btn" data-val="A1">a1</button>
                 <button class="config-btn cat-btn" data-val="A2">a2</button>
@@ -76,7 +77,6 @@
                 <button class="config-btn cat-btn spec-btn" data-val="CUSTOM">kustom</button>
             </div>
             <div class="config-sep"></div>
-            <!-- Grup 2: Target Limit -->
             <div class="config-group">
                 <button class="config-btn target-btn active" data-val="10">10</button>
                 <button class="config-btn target-btn" data-val="25">25</button>
