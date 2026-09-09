@@ -126,24 +126,28 @@ btnSaveLevel.addEventListener('click', () => {
     alert(`Level "${lvlName}" berhasil disimpan ke sistem!`);
 });
 
-// -- FUNGSI SHORTCUT KEYBOARD GLOBAL (ENTER) --
-window.addEventListener('keydown', function (e) {
-    // Gunakan 'Enter' atau kode kuncinya untuk kompatibilitas maksimal
-    if (e.key === 'Enter' || e.keyCode === 13) {
-        e.preventDefault(); 
-        e.stopPropagation(); // Mencegah event merambat ke elemen lain
+// -- FUNGSI SHORTCUT KEYBOARD GLOBAL (ENTER) DENGAN TELEMETRI --
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Mencegah perilaku bawaan peramban
+        console.log("[SISTEM] Tombol Enter terdeteksi.");
 
-        // Cek apakah tombol Next sedang aktif (ditampilkan)
-        if (window.getComputedStyle(btnNext).display !== 'none') {
-            btnNext.click(); 
+        // Logika 1: Jika tombol Next terlihat di layar (bernilai 'inline-block')
+        if (btnNext.style.display === 'inline-block') {
+            console.log("[SISTEM] Mengeksekusi navigasi Next.");
+            btnNext.click();
         } 
-        // Jika tombol Next tidak aktif DAN input aktif (bisa diketik)
-        else if (!wordInput.disabled) {
-            btnSubmit.click(); 
+        // Logika 2: Jika tombol Next sembunyi DAN tombol Periksa tidak dinonaktifkan
+        else if (btnSubmit.disabled === false) {
+            console.log("[SISTEM] Mengeksekusi evaluasi Periksa.");
+            btnSubmit.click();
+        } 
+        // Logika 3: Kondisi di mana level belum dimulai
+        else {
+            console.log("[SISTEM] Eksekusi ditolak: Sesi belum aktif.");
         }
     }
-}, true); // Parameter true (capture phase) memaksa event ditangkap paling awal
-
+});
 // -- MANAJEMEN SESI (SPACED REPETITION) --
 function prepareSession(dataArray, levelName) {
     let sessionWords = [];
