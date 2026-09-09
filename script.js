@@ -124,17 +124,27 @@ btnSaveLevel.addEventListener('click', () => {
 
 // -- FUNGSI SHORTCUT KEYBOARD GLOBAL TINGKAT LANJUT --
 window.addEventListener('keydown', function (e) {
-    // Membaca input Enter ganda untuk stabilitas lintas perangkat
-    if (e.key === 'Enter' || e.keyCode === 13) {
-        
-        // Isolasi Analitis: Jika pengguna sedang mengetik di dalam form pembuat level, nonaktifkan shortcut
-        const activeElementId = document.activeElement.id;
-        if (activeElementId && activeElementId.includes('builder')) {
-            return; 
-        }
+    // Isolasi Analitis: Jangan ganggu pengguna saat mengisi form pembuat level
+    const activeElementId = document.activeElement.id;
+    if (activeElementId && activeElementId.includes('builder')) {
+        return; 
+    }
 
+    // 1. LOGIKA SHORTCUT TAB (Memutar Ulang Audio)
+    if (e.key === 'Tab' || e.keyCode === 9) {
+        e.preventDefault(); // SANGAT PENTING: Mencegah kursor melompat keluar dari kotak ketik
+        e.stopPropagation();
+        
+        // Picu klik tombol Dengarkan hanya jika level sedang berjalan
+        if (targetWord !== "" && !wordInput.disabled) {
+            btnListen.click();
+        }
+    }
+
+    // 2. LOGIKA SHORTCUT ENTER (Evaluasi atau Lanjut)
+    if (e.key === 'Enter' || e.keyCode === 13) {
         e.preventDefault(); 
-        e.stopPropagation(); // Mencegah browser melakukan eksekusi ganda
+        e.stopPropagation(); 
 
         if (btnNext.style.display !== 'none') {
             btnNext.click(); 
@@ -142,7 +152,7 @@ window.addEventListener('keydown', function (e) {
             btnSubmit.click(); 
         }
     }
-}, true); // Parameter true memaksa sistem menangkap event sebelum diblokir elemen lain
+}, true);
 
 // -- MANAJEMEN SESI --
 function prepareSession(dataArray, levelName) {
