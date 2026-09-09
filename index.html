@@ -21,7 +21,7 @@
         </button>
     </header>
 
-    <!-- Modal Pengaturan Bersih -->
+    <!-- Modal Pengaturan -->
     <div id="settings-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -58,8 +58,9 @@
     </div>
 
     <main class="typing-container">
-        <!-- Floating Config Bar (Monkeytype Style) -->
+        <!-- Floating Config Bar -->
         <div class="config-bar">
+            <!-- Grup 1: Kategori -->
             <div class="config-group">
                 <button class="config-btn cat-btn" data-val="A1">a1</button>
                 <button class="config-btn cat-btn" data-val="A2">a2</button>
@@ -70,27 +71,31 @@
             </div>
             <div class="config-sep"></div>
             <div class="config-group">
-                <button class="config-btn spec-btn" data-val="WEAK">⚡ sulit</button>
-                <button class="config-btn spec-btn" data-val="STAR">★ bintang</button>
-                <button class="config-btn spec-btn" data-val="CUSTOM">kustom</button>
+                <button class="config-btn cat-btn spec-btn" data-val="WEAK">⚡ sulit</button>
+                <button class="config-btn cat-btn spec-btn" data-val="STAR">★ bintang</button>
+                <button class="config-btn cat-btn spec-btn" data-val="CUSTOM">kustom</button>
             </div>
-            <div id="sublevel-sep" class="config-sep hidden"></div>
-            <div id="sublevel-group" class="config-group hidden">
-                <button class="config-btn sub-btn" data-val="1">1</button>
-                <button class="config-btn sub-btn" data-val="2">2</button>
-                <button class="config-btn sub-btn" data-val="3">3</button>
+            <div class="config-sep"></div>
+            <!-- Grup 2: Target Limit -->
+            <div class="config-group">
+                <button class="config-btn target-btn active" data-val="10">10</button>
+                <button class="config-btn target-btn" data-val="25">25</button>
+                <button class="config-btn target-btn" data-val="50">50</button>
+                <button class="config-btn target-btn" id="btn-custom-target" data-val="CUSTOM">kustom</button>
+                <input type="number" id="input-custom-target" class="custom-target-input hidden" placeholder="#">
+                <button class="config-btn target-btn" data-val="ALL">semua</button>
             </div>
         </div>
 
+        <div id="file-status" class="status-info">Kategori: - • 0 kata tersedia</div>
         <div id="session-stats" class="status-bar hidden">selesai: 0/0 &nbsp;|&nbsp; akurasi: 0%</div>
         
         <button id="btn-listen" class="audio-btn pill hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-            dengarkan
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            dengarkan <span class="shortcut" style="margin-left: 5px; border:none; background:transparent;">[Tab]</span>
         </button>
         
         <div class="input-section">
-            <!-- Tampilan Default Sebelum Level Dipilih -->
             <div id="idle-text" class="idle-text">pilih konfigurasi level di atas untuk memulai.</div>
             <input type="text" id="word-input" class="hidden" autocomplete="off" spellcheck="false">
         </div>
